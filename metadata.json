@@ -1,0 +1,5 @@
+{
+  "name": "MediCoppia Tracker",
+  "description": "Un'app PWA professionale per gestire l'assunzione di integratori e medicinali di coppia, con gestione turni e promemoria.",
+  "requestFramePermissions": []
+}
