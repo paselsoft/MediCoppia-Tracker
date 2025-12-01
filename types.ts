@@ -5,7 +5,8 @@ export enum UserID {
 
 export enum Frequency {
   DAILY = 'daily',
-  ALTERNATE_DAYS = 'alternate_days'
+  ALTERNATE_DAYS = 'alternate_days',      // Turno A (Giorni Pari dall'epoca)
+  ALTERNATE_DAYS_ODD = 'alternate_days_odd' // Turno B (Giorni Dispari dall'epoca)
 }
 
 export interface Medication {

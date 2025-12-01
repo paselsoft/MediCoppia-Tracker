@@ -1,7 +1,7 @@
 import React from 'react';
-import { Medication, UserID, UserProfile } from '../types';
+import { Medication, UserID, UserProfile, Frequency } from '../types';
 import { USERS } from '../constants';
-import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail } from 'lucide-react';
+import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat } from 'lucide-react';
 
 interface SettingsViewProps {
   medications: Medication[];
@@ -23,6 +23,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       case 'sachet': return <Mail className="w-4 h-4" />;
       default: return <Pill className="w-4 h-4" />;
     }
+  };
+
+  const getFrequencyLabel = (freq: Frequency) => {
+    if (freq === Frequency.DAILY) return "Ogni giorno";
+    if (freq === Frequency.ALTERNATE_DAYS) return "Giorni Alterni (A)";
+    if (freq === Frequency.ALTERNATE_DAYS_ODD) return "Giorni Alterni (B)";
+    return "Personalizzato";
   };
 
   return (
@@ -73,7 +80,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           </div>
                           <div>
                             <h3 className="font-semibold text-gray-800 text-sm">{med.name}</h3>
-                            <p className="text-xs text-gray-400">{med.dosage} • {med.timing}</p>
+                            <div className="flex gap-2 text-xs text-gray-400 items-center mt-0.5">
+                              <span>{med.dosage} • {med.timing}</span>
+                              {med.frequency !== Frequency.DAILY && (
+                                <span className="bg-blue-50 text-blue-600 px-1.5 rounded flex items-center gap-0.5">
+                                  <Repeat className="w-3 h-3" /> {med.frequency === Frequency.ALTERNATE_DAYS ? 'Turno A' : 'Turno B'}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <Pencil className="w-4 h-4 text-gray-300" />

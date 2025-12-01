@@ -122,20 +122,24 @@ const App: React.FC = () => {
   const getDailyMedications = useMemo(() => {
     const userMeds = medications.filter(m => m.userId === currentUserId);
     
+    // Logic for alternate days (Turno A vs Turno B)
+    // Epoch: Jan 1 2024. Even days vs Odd days.
     const daysSinceEpoch = differenceInDays(today, new Date(2024, 0, 1));
-    const isAlternateDayActive = daysSinceEpoch % 2 === 0;
+    const isEvenDay = daysSinceEpoch % 2 === 0;
 
-    return userMeds.map(med => {
-      const isDisabled = med.frequency === Frequency.ALTERNATE_DAYS && !isAlternateDayActive;
-      return { ...med, disabled: isDisabled };
-    });
+    return userMeds.filter(med => {
+      if (med.frequency === Frequency.DAILY) return true;
+      if (med.frequency === Frequency.ALTERNATE_DAYS) return isEvenDay; // Show only on even days
+      if (med.frequency === Frequency.ALTERNATE_DAYS_ODD) return !isEvenDay; // Show only on odd days
+      return true;
+    }).map(med => ({ ...med, disabled: false }));
   }, [currentUserId, today, medications]);
 
   const allUserMedications = useMemo(() => {
     return medications.filter(m => m.userId === currentUserId);
   }, [currentUserId, medications]);
 
-  const activeMeds = getDailyMedications.filter(m => !m.disabled);
+  const activeMeds = getDailyMedications; // All meds in this list are active today
   const takenCount = activeMeds.filter(m => logs[`${formattedDate}-${m.id}`]).length;
   const progress = activeMeds.length > 0 ? (takenCount / activeMeds.length) * 100 : 0;
 
@@ -196,7 +200,7 @@ const App: React.FC = () => {
                     onToggle={() => handleToggle(med.id)}
                     onEdit={handleEditClick}
                     userTheme={currentUser}
-                    disabled={med.disabled}
+                    disabled={false}
                   />
                 ))}
 

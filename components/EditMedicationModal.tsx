@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Medication, UserProfile, Frequency } from '../types';
 import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail } from 'lucide-react';
+import { differenceInDays } from 'date-fns';
 
 interface EditMedicationModalProps {
   medication: Medication;
@@ -44,6 +45,15 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
   }, [medication, isOpen]);
 
   if (!isOpen) return null;
+
+  // Determine which Alternate Day option corresponds to "Today"
+  const daysSinceEpoch = differenceInDays(new Date(), new Date(2024, 0, 1));
+  const isEvenDay = daysSinceEpoch % 2 === 0;
+  
+  // If today is Even: ALTERNATE_DAYS is Today, ALTERNATE_DAYS_ODD is Tomorrow
+  // If today is Odd: ALTERNATE_DAYS is Tomorrow, ALTERNATE_DAYS_ODD is Today
+  const freqEvenLabel = isEvenDay ? "Sì, Oggi" : "No, Domani";
+  const freqOddLabel = !isEvenDay ? "Sì, Oggi" : "No, Domani";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,21 +141,33 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" /> Frequenza
             </label>
-            <div className="grid grid-cols-2 gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200">
+            <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setFormData({...formData, frequency: Frequency.DAILY})}
-                className={`py-2 rounded-lg text-sm font-semibold transition-all ${formData.frequency === Frequency.DAILY ? 'bg-white shadow-sm text-gray-800' : 'text-gray-400 hover:bg-gray-100'}`}
+                className={`py-3 px-4 rounded-xl text-sm font-semibold text-left transition-all border ${formData.frequency === Frequency.DAILY ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
               >
                 Ogni Giorno
               </button>
-              <button
-                type="button"
-                onClick={() => setFormData({...formData, frequency: Frequency.ALTERNATE_DAYS})}
-                className={`py-2 rounded-lg text-sm font-semibold transition-all ${formData.frequency === Frequency.ALTERNATE_DAYS ? 'bg-white shadow-sm text-gray-800' : 'text-gray-400 hover:bg-gray-100'}`}
-              >
-                Giorni Alterni
-              </button>
+              
+              <div className="grid grid-cols-2 gap-2">
+                 <button
+                  type="button"
+                  onClick={() => setFormData({...formData, frequency: Frequency.ALTERNATE_DAYS})}
+                  className={`py-3 px-3 rounded-xl text-sm font-semibold text-left transition-all border flex flex-col ${formData.frequency === Frequency.ALTERNATE_DAYS ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
+                >
+                  <span>Giorni Alterni (A)</span>
+                  <span className={`text-[10px] mt-0.5 ${isEvenDay ? 'text-green-600 font-bold' : 'text-gray-400'}`}>Inizia: {freqEvenLabel}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, frequency: Frequency.ALTERNATE_DAYS_ODD})}
+                  className={`py-3 px-3 rounded-xl text-sm font-semibold text-left transition-all border flex flex-col ${formData.frequency === Frequency.ALTERNATE_DAYS_ODD ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
+                >
+                  <span>Giorni Alterni (B)</span>
+                  <span className={`text-[10px] mt-0.5 ${!isEvenDay ? 'text-green-600 font-bold' : 'text-gray-400'}`}>Inizia: {freqOddLabel}</span>
+                </button>
+              </div>
             </div>
           </div>
 

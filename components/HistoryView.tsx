@@ -25,10 +25,16 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   // Helper to check if a med was scheduled for a specific date
   const isMedicationScheduled = (med: Medication, date: Date) => {
     if (med.frequency === Frequency.DAILY) return true;
+    
+    // Consistent epoch logic with App.tsx
+    const daysSinceEpoch = differenceInDays(date, new Date(2024, 0, 1));
+    const isEvenDay = daysSinceEpoch % 2 === 0;
+
     if (med.frequency === Frequency.ALTERNATE_DAYS) {
-      // Use consistent epoch for alternate days logic
-      const daysSinceEpoch = differenceInDays(date, new Date(2024, 0, 1));
-      return daysSinceEpoch % 2 === 0;
+      return isEvenDay;
+    }
+    if (med.frequency === Frequency.ALTERNATE_DAYS_ODD) {
+      return !isEvenDay;
     }
     return true;
   };

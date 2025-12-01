@@ -32,7 +32,7 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     name: 'RETIGAN Q10',
     dosage: '1 Bustina',
     timing: 'Mattina',
-    frequency: Frequency.ALTERNATE_DAYS,
+    frequency: Frequency.ALTERNATE_DAYS, // Turno A (Pari)
     notes: 'Giorni alterni',
     icon: 'sachet'
   },
@@ -42,7 +42,7 @@ export const INITIAL_MEDICATIONS: Medication[] = [
     name: 'ZETAVIT Mg+K',
     dosage: '1 Bustina',
     timing: 'Mattina',
-    frequency: Frequency.ALTERNATE_DAYS,
+    frequency: Frequency.ALTERNATE_DAYS_ODD, // Turno B (Dispari)
     notes: 'Giorni alterni',
     icon: 'sachet'
   },
