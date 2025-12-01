@@ -44,6 +44,12 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+    // Handle App Shortcuts (URL Parameters)
+    const params = new URLSearchParams(window.location.search);
+    const userParam = params.get('user');
+    if (userParam === UserID.PAOLO) setCurrentUserId(UserID.PAOLO);
+    if (userParam === UserID.BARBARA) setCurrentUserId(UserID.BARBARA);
+
     supabaseClient.initSupabase();
     storage.initializeDefaultDataIfNeeded().then(() => {
       loadData();

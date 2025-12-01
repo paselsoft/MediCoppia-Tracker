@@ -13,6 +13,22 @@
       "sizes": "512x512"
     }
   ],
+  "shortcuts": [
+    {
+      "name": "💊 Paolo",
+      "short_name": "Paolo",
+      "description": "Visualizza le medicine di Paolo",
+      "url": "/?user=paolo",
+      "icons": [{ "src": "https://img.icons8.com/color/96/pill.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "🌸 Barbara",
+      "short_name": "Barbara",
+      "description": "Visualizza le medicine di Barbara",
+      "url": "/?user=barbara",
+      "icons": [{ "src": "https://img.icons8.com/color/96/pill.png", "sizes": "96x96" }]
+    }
+  ],
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#2563eb",
