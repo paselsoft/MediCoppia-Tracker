@@ -25,6 +25,16 @@
       
       /* Safe area spacing for iPhones with notch */
       .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+
+      /* Custom Animations */
+      @keyframes pop {
+        0% { transform: scale(0.5); opacity: 0; }
+        60% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); }
+      }
+      .animate-pop {
+        animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
     </style>
   <script type="importmap">
 {

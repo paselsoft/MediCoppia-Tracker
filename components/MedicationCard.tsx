@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pill, Droplets, Clock, Check, AlertCircle, Pencil, Mail } from 'lucide-react';
 import { Medication, UserProfile } from '../types';
 
@@ -19,6 +19,22 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
   userTheme,
   disabled = false
 }) => {
+  const [flash, setFlash] = useState(false);
+  const isFirstRender = useRef(true);
+
+  // Trigger flash effect when marked as taken (but not on initial load)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (isTaken) {
+      setFlash(true);
+      const timer = setTimeout(() => setFlash(false), 400); // 400ms flash
+      return () => clearTimeout(timer);
+    }
+  }, [isTaken]);
   
   const getIcon = () => {
     switch(medication.icon) {
@@ -46,7 +62,6 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
               <p className="text-xs text-gray-400">Oggi non previsto (Giorni alterni)</p>
             </div>
          </div>
-         {/* Allow editing even if disabled for schedule */}
          <button 
             onClick={handleEditClick}
             className="p-2 text-gray-400 hover:bg-white rounded-full transition-colors"
@@ -63,9 +78,11 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
       onClick={onToggle}
       className={`
         mx-4 mb-3 p-4 rounded-xl border transition-all duration-300 shadow-sm cursor-pointer select-none active:scale-[0.98] group relative
-        ${isTaken 
-          ? `bg-white border-green-200 shadow-none` 
-          : 'bg-white border-gray-100 shadow-md'
+        ${flash 
+          ? 'bg-green-100 border-green-300 scale-[1.01] shadow-md' 
+          : (isTaken 
+            ? `bg-white border-green-200 shadow-none` 
+            : 'bg-white border-gray-100 shadow-md')
         }
       `}
     >
@@ -78,7 +95,7 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
               : `${userTheme.secondaryColor} ${userTheme.themeColor.replace('bg-', 'text-')}`
             }
           `}>
-            {isTaken ? <Check className="w-6 h-6" /> : getIcon()}
+            {isTaken ? <Check className="w-6 h-6 animate-pop" /> : getIcon()}
           </div>
           
           <div className="flex flex-col flex-1 min-w-0 pr-2">
@@ -115,10 +132,10 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
           )}
 
           <div className={`
-            w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all
+            w-6 h-6 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-300
             ${isTaken ? 'border-green-500 bg-green-500' : 'border-gray-300'}
           `}>
-            {isTaken && <Check className="w-4 h-4 text-white" />}
+            {isTaken && <Check className="w-4 h-4 text-white animate-pop" />}
           </div>
         </div>
       </div>
