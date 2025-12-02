@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Medication, UserID, UserProfile, Frequency } from '../types';
 import { USERS } from '../constants';
-import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat } from 'lucide-react';
+import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List } from 'lucide-react';
 
 interface SettingsViewProps {
   medications: Medication[];
@@ -14,6 +14,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onEdit,
   onAdd
 }) => {
+  const [sortAlphabetical, setSortAlphabetical] = useState(false);
   const userList = Object.values(USERS);
 
   const getIcon = (iconName?: string) => {
@@ -34,21 +35,39 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="pb-24 pt-6">
-      <div className="px-6 mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-3 bg-gray-200 rounded-2xl text-gray-700">
-             <Settings className="w-6 h-6" />
+      <div className="px-6 mb-8 flex items-end justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 bg-gray-200 rounded-2xl text-gray-700">
+               <Settings className="w-6 h-6" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800">Impostazioni</h1>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800">Impostazioni</h1>
+          <p className="text-gray-500 text-sm pl-1">
+            Gestisci i medicinali e i dosaggi.
+          </p>
         </div>
-        <p className="text-gray-500 text-sm pl-1">
-          Gestisci i medicinali e i dosaggi per ogni utente.
-        </p>
+
+        <button
+          onClick={() => setSortAlphabetical(!sortAlphabetical)}
+          className={`p-3 rounded-xl border transition-colors flex items-center gap-2 ${
+            sortAlphabetical 
+              ? 'bg-blue-50 border-blue-200 text-blue-600' 
+              : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50'
+          }`}
+          aria-label="Cambia ordinamento"
+        >
+          {sortAlphabetical ? <ArrowDownAZ className="w-5 h-5" /> : <List className="w-5 h-5" />}
+        </button>
       </div>
 
       <div className="space-y-8">
         {userList.map((user) => {
-          const userMeds = medications.filter(m => m.userId === user.id);
+          let userMeds = medications.filter(m => m.userId === user.id);
+          
+          if (sortAlphabetical) {
+            userMeds = [...userMeds].sort((a, b) => a.name.localeCompare(b.name));
+          }
           
           return (
             <div key={user.id} className="px-6">
