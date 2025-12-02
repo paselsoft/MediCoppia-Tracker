@@ -4,6 +4,17 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2024-12-01
+### Aggiunto
+- **Feedback Visivo**: Nuova animazione "pop" sulla spunta e flash verde sullo sfondo quando si prende un farmaco per un feedback positivo immediato.
+- **Ordinamento Alfabetico**: Aggiunto pulsante nelle Impostazioni per ordinare la lista farmaci per nome (A-Z).
+
+### Modificato
+- **UI Card Medicinali**: Ridisegnata la MedicationCard per una maggiore chiarezza:
+    - Aggiunta barra laterale colorata (Accent Bar) per i farmaci ancora da prendere.
+    - Le note importanti ora appaiono in un box giallo evidenziato per attirare l'attenzione.
+    - Stile più pulito, piatto e trasparente per i farmaci già assunti ("Archiviati").
+
 ## [1.6.0] - 2024-12-01
 ### Aggiunto
 - **PWA App Shortcuts**: Aggiunte scorciatoie nel `manifest.json` per accedere direttamente al profilo di Paolo o Barbara tenendo premuta l'icona dell'app.

@@ -10,6 +10,10 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
     *   Supporto per frequenza giornaliera.
     *   Logica intelligente per "Giorni Alterni" (Turno A / Turno B) basata su epoca fissa.
 *   **Storico e Statistiche**: Visualizzazione calendario degli ultimi 14 giorni con percentuali di completamento.
+*   **UX Migliorata**:
+    *   Feedback visivi animati (pop & flash) al completamento.
+    *   Design chiaro con "Accent Bars" colorate per i compiti da svolgere.
+    *   Ordinamento alfabetico o cronologico.
 *   **Gestione Inventario**: Aggiunta, modifica ed eliminazione farmaci con icone personalizzate (Pillole, Gocce, Bustine).
 *   **Funzionalità PWA**:
     *   Installabile su Home Screen (iOS/Android).
