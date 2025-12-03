@@ -105,22 +105,45 @@ export const saveMedication = async (med: Medication) => {
   const supabase = getSupabase();
   if (!supabase) return;
 
-  try {
-    const dbRow = {
-      id: med.id,
-      user_id: med.userId,
-      name: med.name,
-      dosage: med.dosage,
-      timing: med.timing,
-      frequency: med.frequency,
-      notes: med.notes,
-      icon: med.icon,
-      stock_quantity: med.stockQuantity,
-      stock_threshold: med.stockThreshold
-    };
+  // Prepare base object (always safe)
+  const baseDbRow = {
+    id: med.id,
+    user_id: med.userId,
+    name: med.name,
+    dosage: med.dosage,
+    timing: med.timing,
+    frequency: med.frequency,
+    notes: med.notes,
+    icon: med.icon
+  };
 
-    const { error } = await supabase.from('medications').upsert(dbRow);
-    if (error && !isNetworkError(error)) console.error('Error saving medication:', error.message);
+  // Prepare full object (might fail if schema not updated)
+  const fullDbRow = {
+    ...baseDbRow,
+    stock_quantity: med.stockQuantity,
+    stock_threshold: med.stockThreshold
+  };
+
+  try {
+    // Attempt full save first
+    const { error } = await supabase.from('medications').upsert(fullDbRow);
+    
+    if (error) {
+      // Check for Schema error regarding missing columns
+      // PostgREST error usually contains "Could not find the '...'"
+      if (error.message?.includes('stock_quantity') || error.message?.includes('stock_threshold')) {
+        console.warn('Stock columns missing in database. Saving basic medication data only (Fallback mode).');
+        
+        // Retry with safe payload (without stock fields)
+        const { error: retryError } = await supabase.from('medications').upsert(baseDbRow);
+        
+        if (retryError && !isNetworkError(retryError)) {
+             console.error('Error saving medication (fallback failed):', retryError.message);
+        }
+      } else if (!isNetworkError(error)) {
+        console.error('Error saving medication:', error.message);
+      }
+    }
   } catch (e) {
     if (!isNetworkError(e)) console.error('Exception saving medication:', e);
   }
@@ -189,16 +212,21 @@ export const updateStock = async (medId: string, change: number) => {
   if (!supabase) return;
 
   try {
-    // We need to fetch current stock first to ensure atomic-like operation logic locally,
-    // though for simple use case we trust the UI state or just decrement DB.
-    // Better: use an RPC for atomic decrement, but for this app, fetch-then-update is acceptable.
+    // We try to fetch stock first. If the column 'stock_quantity' doesn't exist, this request will fail.
+    // We catch that failure to prevent crashing or further errors.
     const { data: med, error: fetchError } = await supabase
       .from('medications')
       .select('stock_quantity')
       .eq('id', medId)
       .single();
 
-    if (fetchError || !med || med.stock_quantity === null) return;
+    if (fetchError || !med) {
+        // If column missing or med not found, just exit silently.
+        return;
+    }
+    
+    // If feature not enabled for this med
+    if (med.stock_quantity === null || med.stock_quantity === undefined) return;
 
     const newQuantity = med.stock_quantity + change;
     
@@ -207,12 +235,39 @@ export const updateStock = async (medId: string, change: number) => {
       .update({ stock_quantity: newQuantity })
       .eq('id', medId);
 
-    if (updateError && !isNetworkError(updateError)) console.error('Error updating stock:', updateError.message);
+    if (updateError && !isNetworkError(updateError)) {
+        // Only log if it's NOT a missing column error (though the fetch check above should cover it)
+        if (!updateError.message.includes('stock_quantity')) {
+            console.error('Error updating stock:', updateError.message);
+        }
+    }
 
   } catch (e) {
     console.error('Exception updating stock:', e);
   }
 }
+
+// Check if the database has the new columns
+export const checkStockColumnsExist = async (): Promise<boolean> => {
+  const supabase = getSupabase();
+  if (!supabase) return false;
+  
+  try {
+    // Try to select the new columns limiting to 1 row. 
+    // If they don't exist, Supabase will throw a specific error code or message.
+    const { error } = await supabase
+      .from('medications')
+      .select('stock_quantity, stock_threshold')
+      .limit(1);
+
+    // If there is an error (likely column does not exist), return false
+    if (error) return false;
+    
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 // Realtime Subscription
 export const subscribeToChanges = (onUpdate: () => void) => {

@@ -72,8 +72,9 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
       frequency: formData.frequency as Frequency,
       notes: formData.notes,
       icon: formData.icon as 'pill' | 'drop' | 'clock' | 'sachet',
-      stockQuantity: enableStock ? Number(formData.stockQuantity) : undefined,
-      stockThreshold: enableStock ? Number(formData.stockThreshold) : undefined
+      // If stock is not enabled, explicitly set to undefined so we don't send garbage
+      stockQuantity: enableStock ? formData.stockQuantity : undefined,
+      stockThreshold: enableStock ? formData.stockThreshold : undefined
     });
     onClose();
   };
@@ -201,8 +202,8 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
                     <span className="text-[10px] font-bold text-orange-600 block">Q.tà Attuale</span>
                     <input
                       type="number"
-                      value={formData.stockQuantity || ''}
-                      onChange={(e) => setFormData({...formData, stockQuantity: parseInt(e.target.value) || 0})}
+                      value={formData.stockQuantity === undefined ? '' : formData.stockQuantity}
+                      onChange={(e) => setFormData({...formData, stockQuantity: e.target.value === '' ? undefined : parseInt(e.target.value)})}
                       className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
                       placeholder="0"
                     />
@@ -211,8 +212,8 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
                     <span className="text-[10px] font-bold text-orange-600 block">Avviso sotto</span>
                     <input
                       type="number"
-                      value={formData.stockThreshold || 5}
-                      onChange={(e) => setFormData({...formData, stockThreshold: parseInt(e.target.value) || 0})}
+                      value={formData.stockThreshold === undefined ? '' : formData.stockThreshold}
+                      onChange={(e) => setFormData({...formData, stockThreshold: e.target.value === '' ? undefined : parseInt(e.target.value)})}
                       className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
                       placeholder="5"
                     />

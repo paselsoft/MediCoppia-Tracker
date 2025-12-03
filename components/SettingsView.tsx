@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Medication, UserID, UserProfile, Frequency } from '../types';
 import { USERS } from '../constants';
-import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package } from 'lucide-react';
+import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Terminal, Copy, Check } from 'lucide-react';
+import { checkStockColumnsExist } from '../services/storageService';
 
 interface SettingsViewProps {
   medications: Medication[];
@@ -9,13 +10,32 @@ interface SettingsViewProps {
   onAdd: (userId: UserID) => void;
 }
 
+const REQUIRED_SQL = `alter table medications add column if not exists stock_quantity numeric;
+alter table medications add column if not exists stock_threshold numeric;`;
+
 export const SettingsView: React.FC<SettingsViewProps> = ({
   medications,
   onEdit,
   onAdd
 }) => {
   const [sortAlphabetical, setSortAlphabetical] = useState(false);
+  const [missingColumns, setMissingColumns] = useState(false);
+  const [sqlCopied, setSqlCopied] = useState(false);
   const userList = Object.values(USERS);
+
+  useEffect(() => {
+    const checkDB = async () => {
+      const exists = await checkStockColumnsExist();
+      setMissingColumns(!exists);
+    };
+    checkDB();
+  }, []);
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(REQUIRED_SQL);
+    setSqlCopied(true);
+    setTimeout(() => setSqlCopied(false), 2000);
+  };
 
   const getIcon = (iconName?: string) => {
     switch(iconName) {
@@ -55,6 +75,36 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       <div className="space-y-8">
+        
+        {/* Database Warning Banner */}
+        {missingColumns && (
+          <div className="mx-6 bg-red-50 border border-red-200 rounded-2xl p-4 animate-in slide-in-from-top-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-red-100 rounded-lg text-red-600">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-red-700 text-sm">Aggiornamento Database Richiesto</h3>
+                <p className="text-xs text-red-600 mt-1 leading-relaxed">
+                  Per utilizzare la gestione scorte, il database necessita di nuove colonne. Esegui questo SQL nella Dashboard Supabase:
+                </p>
+                
+                <div className="mt-3 bg-gray-900 rounded-lg p-3 relative group">
+                  <pre className="text-[10px] text-green-400 font-mono whitespace-pre-wrap overflow-x-auto">
+                    {REQUIRED_SQL}
+                  </pre>
+                  <button 
+                    onClick={handleCopySql}
+                    className="absolute top-2 right-2 p-1.5 bg-white/10 hover:bg-white/20 rounded text-white transition-colors"
+                  >
+                    {sqlCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {userList.map((user) => {
           let userMeds = medications.filter(m => m.userId === user.id);
           
