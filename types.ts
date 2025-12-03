@@ -18,6 +18,9 @@ export interface Medication {
   frequency: Frequency;
   notes?: string;
   icon?: 'pill' | 'drop' | 'clock' | 'sachet';
+  // Inventory fields
+  stockQuantity?: number; // Quantità residua
+  stockThreshold?: number; // Soglia per l'avviso (es. avvisami quando ne restano 5)
 }
 
 export interface LogEntry {

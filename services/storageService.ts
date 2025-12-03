@@ -13,7 +13,9 @@ const mapDbToMed = (row: any): Medication => ({
   timing: row.timing,
   frequency: row.frequency,
   notes: row.notes,
-  icon: row.icon
+  icon: row.icon,
+  stockQuantity: row.stock_quantity,
+  stockThreshold: row.stock_threshold
 });
 
 // Transform database row to Log format
@@ -112,7 +114,9 @@ export const saveMedication = async (med: Medication) => {
       timing: med.timing,
       frequency: med.frequency,
       notes: med.notes,
-      icon: med.icon
+      icon: med.icon,
+      stock_quantity: med.stockQuantity,
+      stock_threshold: med.stockThreshold
     };
 
     const { error } = await supabase.from('medications').upsert(dbRow);
@@ -179,6 +183,36 @@ export const toggleLog = async (date: string, medId: string, taken: boolean) => 
     if (!isNetworkError(e)) console.error('Exception toggling log:', e);
   }
 };
+
+export const updateStock = async (medId: string, change: number) => {
+  const supabase = getSupabase();
+  if (!supabase) return;
+
+  try {
+    // We need to fetch current stock first to ensure atomic-like operation logic locally,
+    // though for simple use case we trust the UI state or just decrement DB.
+    // Better: use an RPC for atomic decrement, but for this app, fetch-then-update is acceptable.
+    const { data: med, error: fetchError } = await supabase
+      .from('medications')
+      .select('stock_quantity')
+      .eq('id', medId)
+      .single();
+
+    if (fetchError || !med || med.stock_quantity === null) return;
+
+    const newQuantity = med.stock_quantity + change;
+    
+    const { error: updateError } = await supabase
+      .from('medications')
+      .update({ stock_quantity: newQuantity })
+      .eq('id', medId);
+
+    if (updateError && !isNetworkError(updateError)) console.error('Error updating stock:', updateError.message);
+
+  } catch (e) {
+    console.error('Exception updating stock:', e);
+  }
+}
 
 // Realtime Subscription
 export const subscribeToChanges = (onUpdate: () => void) => {

@@ -102,6 +102,7 @@ const App: React.FC = () => {
     const key = `${formattedDate}-${medId}`;
     const newStatus = !logs[key];
     
+    // 1. Update Logs State
     setLogs(prev => {
       const next = { ...prev };
       if (newStatus) next[key] = true;
@@ -109,7 +110,40 @@ const App: React.FC = () => {
       return next;
     });
 
+    // 2. Play Sound immediately if taking (newStatus is true)
+    if (newStatus) {
+       // Check if this was the last one
+       const activeMeds = getDailyMedications;
+       const currentlyTakenCount = activeMeds.filter(m => logs[`${formattedDate}-${m.id}`]).length;
+       const total = activeMeds.length;
+       // If currently taken is total - 1, then this click completes it.
+       if (currentlyTakenCount === total - 1) {
+         const audio = new Audio(SUCCESS_SOUND_BASE64);
+         audio.volume = 0.6;
+         audio.play().catch(e => console.log("Audio play prevented:", e));
+       }
+    }
+
+    // 3. Update Stock (Locally & DB)
+    setMedications(prev => prev.map(med => {
+      if (med.id !== medId) return med;
+      // If stock tracking is enabled
+      if (med.stockQuantity !== undefined && med.stockQuantity !== null) {
+        // Taking (true) -> -1, Untaking (false) -> +1
+        const change = newStatus ? -1 : 1;
+        return { ...med, stockQuantity: med.stockQuantity + change };
+      }
+      return med;
+    }));
+
+    // 4. Persist
     storage.toggleLog(formattedDate, medId, newStatus);
+    
+    // Only update DB stock if medication has stock tracking
+    const med = medications.find(m => m.id === medId);
+    if (med && med.stockQuantity !== undefined) {
+      storage.updateStock(medId, newStatus ? -1 : 1);
+    }
   };
 
   const handleSaveMedication = (updatedMed: Medication) => {
@@ -140,7 +174,8 @@ const App: React.FC = () => {
       dosage: '',
       timing: '',
       frequency: Frequency.DAILY,
-      icon: 'pill'
+      icon: 'pill',
+      stockThreshold: 5 // default
     });
   };
 
@@ -182,15 +217,6 @@ const App: React.FC = () => {
   const takenCount = activeMeds.filter(m => logs[`${formattedDate}-${m.id}`]).length;
   const progress = activeMeds.length > 0 ? (takenCount / activeMeds.length) * 100 : 0;
   const isComplete = progress === 100 && takenCount > 0;
-
-  // Sound Effect on Complete
-  useEffect(() => {
-    if (isComplete) {
-      const audio = new Audio(SUCCESS_SOUND_BASE64);
-      audio.volume = 0.6;
-      audio.play().catch(e => console.log("Audio play prevented by browser:", e));
-    }
-  }, [isComplete]);
 
   if (isLoading) {
     return (

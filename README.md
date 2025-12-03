@@ -12,6 +12,10 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
 *   **Storico e Statistiche**: 
     *   Visualizzazione calendario degli ultimi 14 giorni con percentuali di completamento.
     *   Logica intelligente: distingue tra medicinali "Saltati" (ieri) e "Da prendere" (oggi).
+*   **Gestione Scorte (Inventory)**:
+    *   Tracciamento automatico della quantità residua.
+    *   Badge di avviso quando le scorte sono in esaurimento o finite.
+    *   Gestione facile tramite le impostazioni.
 *   **UX & Gamification**:
     *   **Celebrazione Obiettivi**: Banner gratificante con animazione coriandoli (Confetti) al raggiungimento del 100% giornaliero.
     *   **Feedback Sonoro**: Piacevole effetto audio al completamento degli obiettivi giornalieri.
@@ -67,6 +71,8 @@ create table medications (
   frequency text, -- 'daily', 'alternate_days', 'alternate_days_odd'
   notes text,
   icon text,      -- 'pill', 'drop', 'clock', 'sachet'
+  stock_quantity numeric, -- NUOVO: Quantità residua
+  stock_threshold numeric, -- NUOVO: Soglia avviso
   created_at timestamptz default now()
 );
 
@@ -88,6 +94,13 @@ alter table medications enable row level security;
 alter table logs enable row level security;
 create policy "Accesso Totale" on medications for all using (true);
 create policy "Accesso Totale" on logs for all using (true);
+```
+
+**⚠️ Aggiornamento Versione 1.11.0 (Gestione Scorte)**:
+Se hai già il database creato, esegui questi comandi per aggiungere le colonne mancanti:
+```sql
+alter table medications add column stock_quantity numeric;
+alter table medications add column stock_threshold numeric;
 ```
 
 Le credenziali API sono configurate in `constants.tsx`. **Nota**: In un ambiente di produzione pubblico, utilizzare variabili d'ambiente (`.env`).

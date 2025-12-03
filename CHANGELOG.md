@@ -4,6 +4,15 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2025-12-03
+### Aggiunto
+- **Gestione Scorte (Inventory Tracking)**: 
+  - Possibilità di impostare una quantità iniziale e una soglia di avviso per ogni medicinale.
+  - La quantità diminuisce automaticamente quando si assume il farmaco e aumenta se si annulla l'assunzione.
+  - **Indicatori Visivi**: Badge arancione "Rimasti: X" nella card del farmaco quando si scende sotto la soglia.
+  - Sezione dedicata nelle Impostazioni per vedere rapidamente le giacenze.
+  - Necessita aggiornamento schema database (vedi README).
+
 ## [1.10.0] - 2025-12-03
 ### Aggiunto
 - **Feedback Sonoro**: Aggiunto un effetto sonoro ("Chime" di successo) che viene riprodotto automaticamente quando si completa il 100% dei farmaci giornalieri, aumentando la gratificazione dell'utente. Il suono funziona offline.

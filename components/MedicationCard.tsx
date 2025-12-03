@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Pill, Droplets, Clock, Check, AlertCircle, Pencil, Mail } from 'lucide-react';
+import { Pill, Droplets, Clock, Check, AlertCircle, Pencil, Mail, ShoppingCart } from 'lucide-react';
 import { Medication, UserProfile } from '../types';
 
 interface MedicationCardProps {
@@ -50,8 +50,15 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
     onEdit(medication);
   };
 
+  // Stock logic
+  const showLowStockWarning = 
+    medication.stockQuantity !== undefined && 
+    medication.stockThreshold !== undefined && 
+    medication.stockQuantity <= medication.stockThreshold;
+
+  const isOutOfStock = medication.stockQuantity !== undefined && medication.stockQuantity <= 0;
+
   // Determine accent color for the left border based on theme
-  // We explicitly map these to ensure Tailwind picks them up if not JIT compiled fully
   const accentBorderColor = userTheme.themeColor.includes('blue') ? 'border-l-blue-600' : 'border-l-rose-500';
 
   if (disabled) {
@@ -88,13 +95,18 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
         <div className="flex items-center gap-4 flex-1">
           {/* Icon Circle */}
           <div className={`
-            p-3 rounded-full transition-colors duration-300 flex-shrink-0
+            p-3 rounded-full transition-colors duration-300 flex-shrink-0 relative
             ${isTaken 
               ? 'bg-green-100 text-green-600 opacity-70' 
               : `${userTheme.secondaryColor} ${userTheme.themeColor.replace('bg-', 'text-')}`
             }
           `}>
             {isTaken ? <Check className="w-6 h-6 animate-pop" /> : getIcon()}
+            
+            {/* Out of Stock Indicator on Icon */}
+            {!isTaken && isOutOfStock && (
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white" />
+            )}
           </div>
           
           {/* Text Content */}
@@ -113,7 +125,7 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
               </span>
             </div>
 
-            {/* Notes Section - Highlighted when not taken */}
+            {/* Notes Section */}
             {medication.notes && !isTaken && (
               <div className="mt-2 flex items-start gap-1.5 bg-amber-50 border border-amber-100 p-2 rounded-lg text-amber-800">
                 <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 animate-pulse" />
@@ -122,6 +134,17 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
                 </p>
               </div>
             )}
+            
+            {/* Low Stock Warning */}
+            {!isTaken && showLowStockWarning && (
+               <div className={`mt-2 flex items-center gap-1.5 px-2 py-1 rounded-lg w-fit ${isOutOfStock ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-orange-50 text-orange-600 border border-orange-100'}`}>
+                  <ShoppingCart className="w-3 h-3" />
+                  <span className="text-[10px] font-bold">
+                    {isOutOfStock ? 'ESAURITO' : `Rimasti: ${medication.stockQuantity}`}
+                  </span>
+               </div>
+            )}
+
              {medication.notes && isTaken && (
               <p className="text-xs text-gray-300 mt-1 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" /> {medication.notes}

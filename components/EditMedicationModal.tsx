@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Medication, UserProfile, Frequency } from '../types';
-import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail } from 'lucide-react';
+import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail, Package, AlertTriangle } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
 interface EditMedicationModalProps {
@@ -28,8 +28,12 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
     timing: '',
     frequency: Frequency.DAILY,
     notes: '',
-    icon: 'pill'
+    icon: 'pill',
+    stockQuantity: undefined,
+    stockThreshold: 5
   });
+
+  const [enableStock, setEnableStock] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -39,8 +43,11 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
         timing: medication.timing,
         frequency: medication.frequency,
         notes: medication.notes || '',
-        icon: medication.icon || 'pill'
+        icon: medication.icon || 'pill',
+        stockQuantity: medication.stockQuantity,
+        stockThreshold: medication.stockThreshold || 5
       });
+      setEnableStock(medication.stockQuantity !== undefined && medication.stockQuantity !== null);
     }
   }, [medication, isOpen]);
 
@@ -64,7 +71,9 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
       timing: formData.timing || '',
       frequency: formData.frequency as Frequency,
       notes: formData.notes,
-      icon: formData.icon as 'pill' | 'drop' | 'clock' | 'sachet'
+      icon: formData.icon as 'pill' | 'drop' | 'clock' | 'sachet',
+      stockQuantity: enableStock ? Number(formData.stockQuantity) : undefined,
+      stockThreshold: enableStock ? Number(formData.stockThreshold) : undefined
     });
     onClose();
   };
@@ -170,6 +179,50 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
               </div>
             </div>
           </div>
+
+           {/* Stock Management Section */}
+           <div className="p-4 rounded-xl bg-orange-50 border border-orange-100">
+             <div className="flex items-center justify-between mb-3">
+               <label className="text-xs font-bold text-orange-700 uppercase tracking-wide flex items-center gap-1.5">
+                  <Package className="w-3.5 h-3.5" /> Gestione Scorte
+               </label>
+               <button
+                  type="button"
+                  onClick={() => setEnableStock(!enableStock)}
+                  className={`w-10 h-6 rounded-full p-1 transition-colors ${enableStock ? 'bg-orange-500' : 'bg-gray-300'}`}
+               >
+                 <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${enableStock ? 'translate-x-4' : 'translate-x-0'}`} />
+               </button>
+             </div>
+             
+             {enableStock && (
+               <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-orange-600 block">Q.tà Attuale</span>
+                    <input
+                      type="number"
+                      value={formData.stockQuantity || ''}
+                      onChange={(e) => setFormData({...formData, stockQuantity: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold text-orange-600 block">Avviso sotto</span>
+                    <input
+                      type="number"
+                      value={formData.stockThreshold || 5}
+                      onChange={(e) => setFormData({...formData, stockThreshold: parseInt(e.target.value) || 0})}
+                      className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
+                      placeholder="5"
+                    />
+                  </div>
+               </div>
+             )}
+             {!enableStock && (
+               <p className="text-xs text-orange-400">Attiva per tracciare la quantità residua e ricevere avvisi.</p>
+             )}
+           </div>
 
           {/* Icon Selector */}
           <div className="space-y-1.5">

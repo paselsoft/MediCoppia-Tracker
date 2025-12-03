@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Medication, UserID, UserProfile, Frequency } from '../types';
 import { USERS } from '../constants';
-import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List } from 'lucide-react';
+import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package } from 'lucide-react';
 
 interface SettingsViewProps {
   medications: Medication[];
@@ -26,13 +26,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  const getFrequencyLabel = (freq: Frequency) => {
-    if (freq === Frequency.DAILY) return "Ogni giorno";
-    if (freq === Frequency.ALTERNATE_DAYS) return "Giorni Alterni (A)";
-    if (freq === Frequency.ALTERNATE_DAYS_ODD) return "Giorni Alterni (B)";
-    return "Personalizzato";
-  };
-
   return (
     <div className="pb-24 pt-6">
       <div className="px-6 mb-8 flex items-end justify-between">
@@ -44,7 +37,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <h1 className="text-2xl font-bold text-gray-800">Impostazioni</h1>
           </div>
           <p className="text-gray-500 text-sm pl-1">
-            Gestisci i medicinali e i dosaggi.
+            Gestisci i medicinali, i dosaggi e le scorte.
           </p>
         </div>
 
@@ -87,31 +80,45 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 {userMeds.length > 0 ? (
                   <div className="divide-y divide-gray-50">
-                    {userMeds.map(med => (
-                      <div 
-                        key={med.id} 
-                        onClick={() => onEdit(med)}
-                        className="p-4 flex items-center justify-between hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg bg-gray-100 text-gray-400`}>
-                            {getIcon(med.icon)}
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-800 text-sm">{med.name}</h3>
-                            <div className="flex gap-2 text-xs text-gray-400 items-center mt-0.5">
-                              <span>{med.dosage} • {med.timing}</span>
-                              {med.frequency !== Frequency.DAILY && (
-                                <span className="bg-blue-50 text-blue-600 px-1.5 rounded flex items-center gap-0.5">
-                                  <Repeat className="w-3 h-3" /> {med.frequency === Frequency.ALTERNATE_DAYS ? 'Turno A' : 'Turno B'}
-                                </span>
-                              )}
+                    {userMeds.map(med => {
+                       const hasStock = med.stockQuantity !== undefined && med.stockQuantity !== null;
+                       const isLowStock = hasStock && (med.stockQuantity || 0) <= (med.stockThreshold || 5);
+                       
+                       return (
+                        <div 
+                          key={med.id} 
+                          onClick={() => onEdit(med)}
+                          className="p-4 flex items-center justify-between hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg bg-gray-100 text-gray-400`}>
+                              {getIcon(med.icon)}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-800 text-sm">{med.name}</h3>
+                              <div className="flex gap-2 text-xs text-gray-400 items-center mt-0.5">
+                                <span>{med.dosage} • {med.timing}</span>
+                                {med.frequency !== Frequency.DAILY && (
+                                  <span className="bg-blue-50 text-blue-600 px-1.5 rounded flex items-center gap-0.5">
+                                    <Repeat className="w-3 h-3" /> {med.frequency === Frequency.ALTERNATE_DAYS ? 'Turno A' : 'Turno B'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
+                          
+                          <div className="flex items-center gap-3">
+                            {hasStock && (
+                              <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${isLowStock ? 'bg-orange-50 text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
+                                 <Package className="w-3 h-3" />
+                                 {med.stockQuantity}
+                              </div>
+                            )}
+                            <Pencil className="w-4 h-4 text-gray-300" />
+                          </div>
                         </div>
-                        <Pencil className="w-4 h-4 text-gray-300" />
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="p-8 text-center text-gray-400 text-sm">
