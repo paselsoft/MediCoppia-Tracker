@@ -14,6 +14,7 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
     *   Logica intelligente: distingue tra medicinali "Saltati" (ieri) e "Da prendere" (oggi).
 *   **UX & Gamification**:
     *   **Celebrazione Obiettivi**: Banner gratificante con animazione coriandoli (Confetti) al raggiungimento del 100% giornaliero.
+    *   **Feedback Sonoro**: Piacevole effetto audio al completamento degli obiettivi giornalieri.
     *   Feedback visivi animati (pop & flash) al completamento.
     *   Design chiaro con "Accent Bars" colorate per i compiti da svolgere.
     *   Ordinamento alfabetico o cronologico.

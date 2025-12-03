@@ -4,6 +4,10 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2025-12-03
+### Aggiunto
+- **Feedback Sonoro**: Aggiunto un effetto sonoro ("Chime" di successo) che viene riprodotto automaticamente quando si completa il 100% dei farmaci giornalieri, aumentando la gratificazione dell'utente. Il suono funziona offline.
+
 ## [1.9.0] - 2025-12-03
 ### Aggiunto
 - **Celebrazione Obiettivo**: Nuova esperienza di completamento giornaliero. Quando tutti i farmaci previsti sono stati assunti (100%), la barra di progresso si trasforma in un banner celebrativo prominente.

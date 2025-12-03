@@ -7,7 +7,7 @@ import { MedicationCard } from './components/MedicationCard';
 import { HistoryView } from './components/HistoryView';
 import { EditMedicationModal } from './components/EditMedicationModal';
 import { SettingsView } from './components/SettingsView';
-import { USERS } from './constants';
+import { USERS, SUCCESS_SOUND_BASE64 } from './constants';
 import { UserID, Frequency, Medication } from './types';
 import * as storage from './services/storageService';
 import * as supabaseClient from './services/supabaseClient';
@@ -182,6 +182,15 @@ const App: React.FC = () => {
   const takenCount = activeMeds.filter(m => logs[`${formattedDate}-${m.id}`]).length;
   const progress = activeMeds.length > 0 ? (takenCount / activeMeds.length) * 100 : 0;
   const isComplete = progress === 100 && takenCount > 0;
+
+  // Sound Effect on Complete
+  useEffect(() => {
+    if (isComplete) {
+      const audio = new Audio(SUCCESS_SOUND_BASE64);
+      audio.volume = 0.6;
+      audio.play().catch(e => console.log("Audio play prevented by browser:", e));
+    }
+  }, [isComplete]);
 
   if (isLoading) {
     return (
