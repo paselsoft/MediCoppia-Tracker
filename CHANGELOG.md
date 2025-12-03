@@ -4,6 +4,13 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2025-12-03
+### Aggiunto
+- **Vista Calendario Mensile**: La sezione "Storico" ora mostra un calendario mensile completo invece della striscia di 14 giorni.
+  - Navigazione tra i mesi.
+  - Indicatori visivi a "pallino": Verde (Completo), Giallo (Parziale), Rosso (Saltato), Grigio (Futuro/Nessun piano).
+  - Dettaglio giornaliero interattivo al tocco.
+
 ## [1.11.0] - 2025-12-03
 ### Aggiunto
 - **Gestione Scorte (Inventory Tracking)**: 

@@ -10,7 +10,8 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
     *   Supporto per frequenza giornaliera.
     *   Logica intelligente per "Giorni Alterni" (Turno A / Turno B) basata su epoca fissa.
 *   **Storico e Statistiche**: 
-    *   Visualizzazione calendario degli ultimi 14 giorni con percentuali di completamento.
+    *   **Calendario Mensile**: Vista completa del mese con navigazione.
+    *   **Indicatori di Aderenza**: Pallini colorati sul calendario (Verde=100%, Giallo=Parziale, Rosso=Saltato).
     *   Logica intelligente: distingue tra medicinali "Saltati" (ieri) e "Da prendere" (oggi).
 *   **Gestione Scorte (Inventory)**:
     *   Tracciamento automatico della quantità residua.

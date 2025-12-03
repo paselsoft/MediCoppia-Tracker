@@ -21,7 +21,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [sortAlphabetical, setSortAlphabetical] = useState(false);
   const [missingColumns, setMissingColumns] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
-  const userList = Object.values(USERS);
+  const userList = Object.keys(USERS).map(key => USERS[key as UserID]);
 
   useEffect(() => {
     const checkDB = async () => {

@@ -1,7 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { format, addDays, isSameDay, differenceInDays } from 'date-fns';
+import { 
+  format, 
+  addDays, 
+  isSameDay, 
+  differenceInDays, 
+  startOfMonth, 
+  endOfMonth, 
+  startOfWeek, 
+  endOfWeek, 
+  eachDayOfInterval, 
+  addMonths, 
+  subMonths, 
+  isAfter, 
+  isSameMonth
+} from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Check, X, Ban, CalendarDays, Clock } from 'lucide-react';
+import { Check, X, CalendarDays, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Medication, UserProfile, Frequency } from '../types';
 
 interface HistoryViewProps {
@@ -16,12 +30,8 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   logs
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   
-  // Generate last 14 days
-  const pastDays = useMemo(() => {
-    return Array.from({ length: 14 }, (_, i) => addDays(new Date(), -i));
-  }, []);
-
   // Helper to check if a med was scheduled for a specific date
   const isMedicationScheduled = (med: Medication, date: Date) => {
     if (med.frequency === Frequency.DAILY) return true;
@@ -43,70 +53,126 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
     const dateStr = format(date, 'yyyy-MM-dd');
     const scheduledMeds = medications.filter(m => isMedicationScheduled(m, date));
     
-    if (scheduledMeds.length === 0) return { taken: 0, total: 0, percentage: 0 };
+    if (scheduledMeds.length === 0) return { taken: 0, total: 0, percentage: 0, isEmpty: true };
 
     const takenCount = scheduledMeds.filter(m => logs[`${dateStr}-${m.id}`]).length;
     return {
       taken: takenCount,
       total: scheduledMeds.length,
-      percentage: Math.round((takenCount / scheduledMeds.length) * 100)
+      percentage: Math.round((takenCount / scheduledMeds.length) * 100),
+      isEmpty: false
     };
   };
+
+  // Calendar Logic
+  const calendarDays = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart, { locale: it, weekStartsOn: 1 }); // Monday start
+    const endDate = endOfWeek(monthEnd, { locale: it, weekStartsOn: 1 });
+
+    return eachDayOfInterval({ start: startDate, end: endDate });
+  }, [currentMonth]);
+
+  const nextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
+  const prevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
+
+  const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
   const selectedStats = getDayStats(selectedDate);
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
   const isToday = isSameDay(selectedDate, new Date());
 
   return (
-    <div className="pb-24">
-      {/* Calendar Strip */}
-      <div className="bg-white border-b border-gray-100 shadow-sm mb-6">
-        <div className="flex overflow-x-auto no-scrollbar py-4 px-4 gap-3 snap-x">
-          {pastDays.map((date) => {
-            const isSelected = isSameDay(date, selectedDate);
-            const stats = getDayStats(date);
-            const dateIsToday = isSameDay(date, new Date());
+    <div className="pb-24 pt-4">
+      {/* Calendar Container */}
+      <div className="mx-4 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+        
+        {/* Month Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-50">
+           <button onClick={prevMonth} className="p-2 hover:bg-gray-50 rounded-full text-gray-400 active:bg-gray-100">
+             <ChevronLeft className="w-5 h-5" />
+           </button>
+           <h2 className="text-lg font-bold text-gray-800 capitalize">
+             {format(currentMonth, 'MMMM yyyy', { locale: it })}
+           </h2>
+           <button onClick={nextMonth} className="p-2 hover:bg-gray-50 rounded-full text-gray-400 active:bg-gray-100">
+             <ChevronRight className="w-5 h-5" />
+           </button>
+        </div>
 
-            return (
-              <button
-                key={date.toISOString()}
-                onClick={() => setSelectedDate(date)}
-                className={`
-                  snap-start flex-shrink-0 flex flex-col items-center justify-center w-14 h-20 rounded-2xl border-2 transition-all duration-200
-                  ${isSelected 
-                    ? `border-${currentUser.themeColor.replace('bg-', '')} bg-gray-50` 
-                    : 'border-transparent bg-white'
-                  }
-                `}
-              >
-                <span className="text-xs text-gray-400 capitalize">
-                  {dateIsToday ? 'Oggi' : format(date, 'EEE', { locale: it })}
-                </span>
-                <span className={`text-lg font-bold ${isSelected ? 'text-gray-800' : 'text-gray-600'}`}>
-                  {format(date, 'd')}
-                </span>
-                
-                {/* Mini Indicator */}
-                <div className="mt-1 h-1.5 w-8 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full ${currentUser.themeColor}`} 
-                    style={{ width: `${stats.percentage}%` }}
-                  />
-                </div>
-              </button>
-            );
-          })}
+        {/* Days Grid */}
+        <div className="p-2">
+           {/* Weekday Labels */}
+           <div className="grid grid-cols-7 mb-2">
+             {weekDays.map(d => (
+               <div key={d} className="text-center text-[10px] font-bold text-gray-300 uppercase">
+                 {d}
+               </div>
+             ))}
+           </div>
+
+           {/* Dates */}
+           <div className="grid grid-cols-7 gap-1">
+             {calendarDays.map((day) => {
+               const isCurrentMonth = isSameMonth(day, currentMonth);
+               const isSelected = isSameDay(day, selectedDate);
+               const isDayToday = isSameDay(day, new Date());
+               const isFuture = isAfter(day, new Date()) && !isDayToday;
+               
+               const stats = getDayStats(day);
+               
+               // Dot Logic
+               let dotColor = 'bg-gray-200'; // Default/Empty
+               
+               if (stats.isEmpty) {
+                 dotColor = 'bg-transparent';
+               } else if (isFuture) {
+                 dotColor = 'bg-gray-200'; // Future placeholder
+               } else {
+                 if (stats.percentage === 100) dotColor = 'bg-green-500';
+                 else if (stats.percentage > 0) dotColor = 'bg-yellow-400';
+                 else dotColor = isDayToday ? 'bg-gray-300' : 'bg-red-400';
+               }
+
+               return (
+                 <button
+                   key={day.toISOString()}
+                   onClick={() => setSelectedDate(day)}
+                   className={`
+                     aspect-[4/5] rounded-xl flex flex-col items-center justify-center gap-1 relative transition-all
+                     ${!isCurrentMonth ? 'opacity-30' : ''}
+                     ${isSelected ? `bg-${currentUser.themeColor.replace('bg-', '')}/10 ring-2 ring-${currentUser.themeColor.replace('bg-', '')} ring-inset` : 'hover:bg-gray-50'}
+                   `}
+                 >
+                   <span className={`text-sm font-semibold ${isSelected ? `text-${currentUser.themeColor.replace('bg-', '')}` : (isDayToday ? 'text-blue-600' : 'text-gray-700')}`}>
+                     {format(day, 'd')}
+                   </span>
+                   
+                   {/* Status Dot */}
+                   {!stats.isEmpty && (
+                     <div className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                   )}
+                 </button>
+               );
+             })}
+           </div>
         </div>
       </div>
 
-      {/* Selected Day Header */}
-      <div className="px-6 mb-6">
-        <h2 className="text-xl font-bold text-gray-800 capitalize">
-          {format(selectedDate, 'EEEE d MMMM', { locale: it })}
-        </h2>
-        <p className="text-gray-500 text-sm">
-          Completamento: <span className="font-semibold text-gray-800">{selectedStats.percentage}%</span>
-        </p>
+      {/* Selected Day Header (Mini) */}
+      <div className="px-6 mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-gray-800 capitalize">
+            {format(selectedDate, 'EEEE d MMMM', { locale: it })}
+          </h2>
+          <p className="text-sm text-gray-500">
+             {selectedStats.isEmpty 
+               ? 'Nessun piano' 
+               : `Completamento: ${selectedStats.percentage}%`
+             }
+          </p>
+        </div>
       </div>
 
       {/* Medication List for Selected Date */}
@@ -115,7 +181,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           const isScheduled = isMedicationScheduled(med, selectedDate);
           const isTaken = logs[`${selectedDateStr}-${med.id}`];
           
-          if (!isScheduled) return null; // Don't show non-scheduled meds in history to avoid clutter
+          if (!isScheduled) return null;
 
           // Determine Style based on state
           let containerClass = "bg-white border-red-50"; // Default skipped (past)
@@ -124,25 +190,32 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           let statusLabel = <span className="text-red-400 font-medium">Saltato</span>;
           let textClass = "text-gray-400";
 
-          if (isTaken) {
+          // Future logic for list items
+          if (isAfter(selectedDate, new Date()) && !isToday) {
+             containerClass = "bg-gray-50 border-gray-100 opacity-60";
+             iconBgClass = "bg-gray-200 text-gray-400";
+             icon = <Clock className="w-5 h-5" />;
+             statusLabel = null; // No label for future
+             textClass = "text-gray-400";
+          }
+          else if (isTaken) {
              containerClass = "bg-white border-green-100";
              iconBgClass = "bg-green-100 text-green-600";
              icon = <Check className="w-5 h-5" />;
-             statusLabel = null;
+             statusLabel = <span className="text-green-600 font-bold text-xs">PRESO</span>;
              textClass = "text-gray-800";
           } else if (isToday) {
-             // Not taken BUT it is today -> "Da prendere"
-             containerClass = "bg-gray-50 border-gray-100 border-dashed";
-             iconBgClass = "bg-gray-200 text-gray-400";
+             containerClass = "bg-white border-gray-200 border-dashed";
+             iconBgClass = "bg-blue-50 text-blue-500";
              icon = <Clock className="w-5 h-5" />;
-             statusLabel = <span className="text-gray-500 font-medium bg-gray-200 px-2 py-0.5 rounded text-[10px]">Da prendere</span>;
+             statusLabel = <span className="text-blue-500 font-medium bg-blue-50 px-2 py-0.5 rounded text-[10px]">Da prendere</span>;
              textClass = "text-gray-600";
           }
 
           return (
             <div 
               key={med.id}
-              className={`p-4 rounded-xl border flex items-center justify-between ${containerClass}`}
+              className={`p-4 rounded-xl border flex items-center justify-between transition-colors ${containerClass}`}
             >
               <div className="flex items-center gap-4">
                 <div className={`p-2 rounded-full ${iconBgClass}`}>
@@ -162,7 +235,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           );
         })}
         
-        {selectedStats.total === 0 && (
+        {selectedStats.isEmpty && (
           <div className="text-center py-10 text-gray-400 flex flex-col items-center">
             <CalendarDays className="w-12 h-12 mb-2 opacity-20" />
             <p>Nessun medicinale previsto per questa data.</p>

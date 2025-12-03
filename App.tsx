@@ -185,7 +185,7 @@ const App: React.FC = () => {
   };
 
   const handleWhatsAppReminder = () => {
-    const otherUser = Object.values(USERS).find(u => u.id !== currentUserId);
+    const otherUser = Object.keys(USERS).map(key => USERS[key as UserID]).find(u => u.id !== currentUserId);
     if (!otherUser) return;
 
     const message = `Ciao amore! ❤️ Ricordati di prendere i tuoi integratori e le medicine di oggi. Controlla l'app MediCoppia!`;
@@ -234,7 +234,7 @@ const App: React.FC = () => {
       <Header 
         currentUser={currentUser} 
         onSwitchUser={setCurrentUserId}
-        availableUsers={Object.values(USERS)}
+        availableUsers={Object.keys(USERS).map(key => USERS[key as UserID])}
         dateDisplay={displayDate}
       />
 
