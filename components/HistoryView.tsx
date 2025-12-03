@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { format, subDays, isSameDay, differenceInDays } from 'date-fns';
+import { format, addDays, isSameDay, differenceInDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { Check, X, Ban, CalendarDays, Clock } from 'lucide-react';
 import { Medication, UserProfile, Frequency } from '../types';
@@ -20,7 +19,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   
   // Generate last 14 days
   const pastDays = useMemo(() => {
-    return Array.from({ length: 14 }, (_, i) => subDays(new Date(), i));
+    return Array.from({ length: 14 }, (_, i) => addDays(new Date(), -i));
   }, []);
 
   // Helper to check if a med was scheduled for a specific date

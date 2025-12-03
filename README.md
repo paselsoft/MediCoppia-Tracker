@@ -9,7 +9,9 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
 *   **Gestione Turni Avanzata**:
     *   Supporto per frequenza giornaliera.
     *   Logica intelligente per "Giorni Alterni" (Turno A / Turno B) basata su epoca fissa.
-*   **Storico e Statistiche**: Visualizzazione calendario degli ultimi 14 giorni con percentuali di completamento.
+*   **Storico e Statistiche**: 
+    *   Visualizzazione calendario degli ultimi 14 giorni con percentuali di completamento.
+    *   Logica intelligente: distingue tra medicinali "Saltati" (ieri) e "Da prendere" (oggi).
 *   **UX Migliorata**:
     *   Feedback visivi animati (pop & flash) al completamento.
     *   Design chiaro con "Accent Bars" colorate per i compiti da svolgere.
