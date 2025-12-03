@@ -1,7 +1,8 @@
+
 import React, { useState, useMemo } from 'react';
 import { format, subDays, isSameDay, differenceInDays } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { Check, X, Ban, CalendarDays } from 'lucide-react';
+import { Check, X, Ban, CalendarDays, Clock } from 'lucide-react';
 import { Medication, UserProfile, Frequency } from '../types';
 
 interface HistoryViewProps {
@@ -55,6 +56,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
   const selectedStats = getDayStats(selectedDate);
   const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+  const isToday = isSameDay(selectedDate, new Date());
 
   return (
     <div className="pb-24">
@@ -64,7 +66,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           {pastDays.map((date) => {
             const isSelected = isSameDay(date, selectedDate);
             const stats = getDayStats(date);
-            const isToday = isSameDay(date, new Date());
+            const dateIsToday = isSameDay(date, new Date());
 
             return (
               <button
@@ -79,7 +81,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                 `}
               >
                 <span className="text-xs text-gray-400 capitalize">
-                  {isToday ? 'Oggi' : format(date, 'EEE', { locale: it })}
+                  {dateIsToday ? 'Oggi' : format(date, 'EEE', { locale: it })}
                 </span>
                 <span className={`text-lg font-bold ${isSelected ? 'text-gray-800' : 'text-gray-600'}`}>
                   {format(date, 'd')}
@@ -116,31 +118,44 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           
           if (!isScheduled) return null; // Don't show non-scheduled meds in history to avoid clutter
 
+          // Determine Style based on state
+          let containerClass = "bg-white border-red-50"; // Default skipped (past)
+          let iconBgClass = "bg-red-50 text-red-400";
+          let icon = <X className="w-5 h-5" />;
+          let statusLabel = <span className="text-red-400 font-medium">Saltato</span>;
+          let textClass = "text-gray-400";
+
+          if (isTaken) {
+             containerClass = "bg-white border-green-100";
+             iconBgClass = "bg-green-100 text-green-600";
+             icon = <Check className="w-5 h-5" />;
+             statusLabel = null;
+             textClass = "text-gray-800";
+          } else if (isToday) {
+             // Not taken BUT it is today -> "Da prendere"
+             containerClass = "bg-gray-50 border-gray-100 border-dashed";
+             iconBgClass = "bg-gray-200 text-gray-400";
+             icon = <Clock className="w-5 h-5" />;
+             statusLabel = <span className="text-gray-500 font-medium bg-gray-200 px-2 py-0.5 rounded text-[10px]">Da prendere</span>;
+             textClass = "text-gray-600";
+          }
+
           return (
             <div 
               key={med.id}
-              className={`
-                p-4 rounded-xl border flex items-center justify-between
-                ${isTaken 
-                  ? 'bg-white border-green-100' 
-                  : 'bg-white border-red-50' // Missed meds
-                }
-              `}
+              className={`p-4 rounded-xl border flex items-center justify-between ${containerClass}`}
             >
               <div className="flex items-center gap-4">
-                <div className={`
-                  p-2 rounded-full 
-                  ${isTaken ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-400'}
-                `}>
-                  {isTaken ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
+                <div className={`p-2 rounded-full ${iconBgClass}`}>
+                  {icon}
                 </div>
                 <div>
-                  <h3 className={`font-semibold ${isTaken ? 'text-gray-800' : 'text-gray-400'}`}>
+                  <h3 className={`font-semibold ${textClass}`}>
                     {med.name}
                   </h3>
-                  <div className="flex gap-2 text-xs">
+                  <div className="flex gap-2 text-xs items-center">
                     <span className="text-gray-500">{med.timing}</span>
-                    {!isTaken && <span className="text-red-400 font-medium">Saltato</span>}
+                    {statusLabel}
                   </div>
                 </div>
               </div>
