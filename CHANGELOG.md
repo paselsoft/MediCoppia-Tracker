@@ -4,6 +4,12 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-12-03
+### Aggiunto
+- **Celebrazione Obiettivo**: Nuova esperienza di completamento giornaliero. Quando tutti i farmaci previsti sono stati assunti (100%), la barra di progresso si trasforma in un banner celebrativo prominente.
+- **Effetto Coriandoli**: Aggiunta animazione particellare (Confetti) che esplode sullo schermo per gratificare l'utente al completamento della terapia.
+- **Micro-interazioni**: Animazioni migliorate per l'icona "Trofeo" e transizioni più fluide.
+
 ## [1.8.0] - 2025-12-03
 ### Migliorato
 - **Vista Storico Intelligente**: Ora lo storico distingue tra giorni passati e il giorno corrente. Se si visualizza la data di "Oggi", i farmaci non ancora presi appaiono come "Da prendere" (grigio/neutro) con icona orologio, invece che come "Saltato" (rosso), riflettendo correttamente che la giornata non è ancora conclusa.

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { MessageCircle, CalendarCheck, History, Loader2, Settings } from 'lucide-react';
+import { MessageCircle, CalendarCheck, History, Loader2, Settings, Trophy, PartyPopper } from 'lucide-react';
 import { Header } from './components/Header';
 import { MedicationCard } from './components/MedicationCard';
 import { HistoryView } from './components/HistoryView';
@@ -11,6 +11,39 @@ import { USERS } from './constants';
 import { UserID, Frequency, Medication } from './types';
 import * as storage from './services/storageService';
 import * as supabaseClient from './services/supabaseClient';
+
+// --- Confetti Component ---
+const Confetti = () => {
+  const pieces = useMemo(() => {
+    const colors = ['#FFC700', '#FF0000', '#2E3192', '#41BBC7', '#73F02D'];
+    return Array.from({ length: 40 }).map((_, i) => ({
+      id: i,
+      left: Math.random() * 100 + '%',
+      delay: Math.random() * 2 + 's',
+      bg: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 8 + 4 + 'px'
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 rounded-2xl">
+      {pieces.map((p) => (
+        <div
+          key={p.id}
+          className="confetti-piece"
+          style={{
+            left: p.left,
+            animationDelay: p.delay,
+            backgroundColor: p.bg,
+            width: p.size,
+            height: p.size,
+            borderRadius: Math.random() > 0.5 ? '50%' : '2px'
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   // --- State ---
@@ -148,6 +181,7 @@ const App: React.FC = () => {
   const activeMeds = getDailyMedications; // All meds in this list are active today
   const takenCount = activeMeds.filter(m => logs[`${formattedDate}-${m.id}`]).length;
   const progress = activeMeds.length > 0 ? (takenCount / activeMeds.length) * 100 : 0;
+  const isComplete = progress === 100 && takenCount > 0;
 
   if (isLoading) {
     return (
@@ -172,29 +206,43 @@ const App: React.FC = () => {
       <div className="flex-1 overflow-y-auto no-scrollbar">
         {activeTab === 'today' && (
           <>
-            {/* Progress Bar */}
+            {/* Progress Bar or Completion Banner */}
             <div className="-mt-1 px-6 relative z-20 mb-6">
-              <div className="bg-white rounded-full p-1 shadow-sm border border-gray-100 flex items-center gap-3 pr-4">
-                 <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden mx-2">
-                   <div 
-                     className={`h-full transition-all duration-700 ease-out ${currentUser.themeColor}`} 
-                     style={{ width: `${progress}%` }}
-                   />
-                 </div>
-                 <span className="text-xs font-bold text-gray-400 min-w-[3rem] text-right">
-                   {takenCount}/{activeMeds.length}
-                 </span>
-              </div>
+              {isComplete ? (
+                <div className="relative overflow-hidden bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 text-white rounded-2xl p-6 shadow-xl shadow-orange-200 animate-pop transform transition-all ring-4 ring-white">
+                  <Confetti />
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/20 rounded-full backdrop-blur-md shadow-inner border border-white/30">
+                        <Trophy className="w-8 h-8 text-white fill-yellow-200 animate-bounce" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-xl leading-tight flex items-center gap-2">
+                          Ottimo lavoro! <PartyPopper className="w-5 h-5" />
+                        </h3>
+                        <p className="text-orange-50 text-sm font-medium opacity-90 mt-0.5">Hai completato il piano di oggi.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-full p-1.5 shadow-sm border border-gray-100 flex items-center gap-3 pr-4">
+                   <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden mx-2 relative">
+                     <div 
+                       className={`h-full transition-all duration-700 ease-out rounded-full ${currentUser.themeColor}`} 
+                       style={{ width: `${progress}%` }}
+                     />
+                   </div>
+                   <span className="text-xs font-bold text-gray-400 min-w-[3rem] text-right">
+                     {takenCount}/{activeMeds.length}
+                   </span>
+                </div>
+              )}
             </div>
 
             <main className="pb-24">
               <div className="px-6 mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-800">Piano Giornaliero</h2>
-                {progress === 100 && takenCount > 0 && (
-                   <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full animate-bounce">
-                     Tutto fatto! 🎉
-                   </span>
-                )}
               </div>
 
               <div className="flex flex-col gap-1">

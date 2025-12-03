@@ -12,7 +12,8 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
 *   **Storico e Statistiche**: 
     *   Visualizzazione calendario degli ultimi 14 giorni con percentuali di completamento.
     *   Logica intelligente: distingue tra medicinali "Saltati" (ieri) e "Da prendere" (oggi).
-*   **UX Migliorata**:
+*   **UX & Gamification**:
+    *   **Celebrazione Obiettivi**: Banner gratificante con animazione coriandoli (Confetti) al raggiungimento del 100% giornaliero.
     *   Feedback visivi animati (pop & flash) al completamento.
     *   Design chiaro con "Accent Bars" colorate per i compiti da svolgere.
     *   Ordinamento alfabetico o cronologico.
