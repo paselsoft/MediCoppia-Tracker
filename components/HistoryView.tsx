@@ -86,17 +86,17 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
   return (
     <div className="pb-24 pt-4">
       {/* Calendar Container */}
-      <div className="mx-4 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+      <div className="mx-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-6 transition-colors">
         
         {/* Month Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-50">
-           <button onClick={prevMonth} className="p-2 hover:bg-gray-50 rounded-full text-gray-400 active:bg-gray-100">
+        <div className="flex items-center justify-between p-4 border-b border-gray-50 dark:border-gray-700">
+           <button onClick={prevMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500 active:bg-gray-100 dark:active:bg-gray-600 transition-colors">
              <ChevronLeft className="w-5 h-5" />
            </button>
-           <h2 className="text-lg font-bold text-gray-800 capitalize">
+           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 capitalize">
              {format(currentMonth, 'MMMM yyyy', { locale: it })}
            </h2>
-           <button onClick={nextMonth} className="p-2 hover:bg-gray-50 rounded-full text-gray-400 active:bg-gray-100">
+           <button onClick={nextMonth} className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500 active:bg-gray-100 dark:active:bg-gray-600 transition-colors">
              <ChevronRight className="w-5 h-5" />
            </button>
         </div>
@@ -106,7 +106,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
            {/* Weekday Labels */}
            <div className="grid grid-cols-7 mb-2">
              {weekDays.map(d => (
-               <div key={d} className="text-center text-[10px] font-bold text-gray-300 uppercase">
+               <div key={d} className="text-center text-[10px] font-bold text-gray-300 dark:text-gray-600 uppercase">
                  {d}
                </div>
              ))}
@@ -123,16 +123,16 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                const stats = getDayStats(day);
                
                // Dot Logic
-               let dotColor = 'bg-gray-200'; // Default/Empty
+               let dotColor = 'bg-gray-200 dark:bg-gray-600'; // Default/Empty
                
                if (stats.isEmpty) {
                  dotColor = 'bg-transparent';
                } else if (isFuture) {
-                 dotColor = 'bg-gray-200'; // Future placeholder
+                 dotColor = 'bg-gray-200 dark:bg-gray-600'; // Future placeholder
                } else {
                  if (stats.percentage === 100) dotColor = 'bg-green-500';
                  else if (stats.percentage > 0) dotColor = 'bg-yellow-400';
-                 else dotColor = isDayToday ? 'bg-gray-300' : 'bg-red-400';
+                 else dotColor = isDayToday ? 'bg-gray-300 dark:bg-gray-500' : 'bg-red-400';
                }
 
                return (
@@ -142,10 +142,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                    className={`
                      aspect-[4/5] rounded-xl flex flex-col items-center justify-center gap-1 relative transition-all
                      ${!isCurrentMonth ? 'opacity-30' : ''}
-                     ${isSelected ? `bg-${currentUser.themeColor.replace('bg-', '')}/10 ring-2 ring-${currentUser.themeColor.replace('bg-', '')} ring-inset` : 'hover:bg-gray-50'}
+                     ${isSelected ? `bg-${currentUser.themeColor.replace('bg-', '')}/10 ring-2 ring-${currentUser.themeColor.replace('bg-', '')} ring-inset` : 'hover:bg-gray-50 dark:hover:bg-gray-700'}
                    `}
                  >
-                   <span className={`text-sm font-semibold ${isSelected ? `text-${currentUser.themeColor.replace('bg-', '')}` : (isDayToday ? 'text-blue-600' : 'text-gray-700')}`}>
+                   <span className={`text-sm font-semibold ${isSelected ? `text-${currentUser.themeColor.replace('bg-', '')}` : (isDayToday ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200')}`}>
                      {format(day, 'd')}
                    </span>
                    
@@ -163,10 +163,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
       {/* Selected Day Header (Mini) */}
       <div className="px-6 mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-800 capitalize">
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 capitalize">
             {format(selectedDate, 'EEEE d MMMM', { locale: it })}
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
              {selectedStats.isEmpty 
                ? 'Nessun piano' 
                : `Completamento: ${selectedStats.percentage}%`
@@ -184,32 +184,32 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           if (!isScheduled) return null;
 
           // Determine Style based on state
-          let containerClass = "bg-white border-red-50"; // Default skipped (past)
-          let iconBgClass = "bg-red-50 text-red-400";
+          let containerClass = "bg-white dark:bg-gray-800 border-red-50 dark:border-red-900/50"; // Default skipped (past)
+          let iconBgClass = "bg-red-50 dark:bg-red-900/30 text-red-400 dark:text-red-300";
           let icon = <X className="w-5 h-5" />;
           let statusLabel = <span className="text-red-400 font-medium">Saltato</span>;
-          let textClass = "text-gray-400";
+          let textClass = "text-gray-400 dark:text-gray-500";
 
           // Future logic for list items
           if (isAfter(selectedDate, new Date()) && !isToday) {
-             containerClass = "bg-gray-50 border-gray-100 opacity-60";
-             iconBgClass = "bg-gray-200 text-gray-400";
+             containerClass = "bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-700 opacity-60";
+             iconBgClass = "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500";
              icon = <Clock className="w-5 h-5" />;
              statusLabel = null; // No label for future
-             textClass = "text-gray-400";
+             textClass = "text-gray-400 dark:text-gray-500";
           }
           else if (isTaken) {
-             containerClass = "bg-white border-green-100";
-             iconBgClass = "bg-green-100 text-green-600";
+             containerClass = "bg-white dark:bg-gray-800 border-green-100 dark:border-green-900/50";
+             iconBgClass = "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400";
              icon = <Check className="w-5 h-5" />;
-             statusLabel = <span className="text-green-600 font-bold text-xs">PRESO</span>;
-             textClass = "text-gray-800";
+             statusLabel = <span className="text-green-600 dark:text-green-400 font-bold text-xs">PRESO</span>;
+             textClass = "text-gray-800 dark:text-gray-100";
           } else if (isToday) {
-             containerClass = "bg-white border-gray-200 border-dashed";
-             iconBgClass = "bg-blue-50 text-blue-500";
+             containerClass = "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 border-dashed";
+             iconBgClass = "bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400";
              icon = <Clock className="w-5 h-5" />;
-             statusLabel = <span className="text-blue-500 font-medium bg-blue-50 px-2 py-0.5 rounded text-[10px]">Da prendere</span>;
-             textClass = "text-gray-600";
+             statusLabel = <span className="text-blue-500 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded text-[10px]">Da prendere</span>;
+             textClass = "text-gray-600 dark:text-gray-300";
           }
 
           return (
@@ -226,7 +226,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
                     {med.name}
                   </h3>
                   <div className="flex gap-2 text-xs items-center">
-                    <span className="text-gray-500">{med.timing}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{med.timing}</span>
                     {statusLabel}
                   </div>
                 </div>
@@ -236,7 +236,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
         })}
         
         {selectedStats.isEmpty && (
-          <div className="text-center py-10 text-gray-400 flex flex-col items-center">
+          <div className="text-center py-10 text-gray-400 dark:text-gray-600 flex flex-col items-center">
             <CalendarDays className="w-12 h-12 mb-2 opacity-20" />
             <p>Nessun medicinale previsto per questa data.</p>
           </div>

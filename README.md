@@ -17,6 +17,9 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
     *   Tracciamento automatico della quantità residua.
     *   Badge di avviso quando le scorte sono in esaurimento o finite.
     *   **Lista Spesa Automatica**: Un click per generare la lista dei farmaci mancanti e inviarla via WhatsApp al partner ("Amore, serve comprare...").
+*   **Dark Mode Automatica 🌙**:
+    *   Si attiva automaticamente in base alle impostazioni del sistema operativo.
+    *   Colori ottimizzati per l'uso notturno e per ridurre l'affaticamento visivo.
 *   **UX & Gamification**:
     *   **Celebrazione Obiettivi**: Banner gratificante con animazione coriandoli (Confetti) al raggiungimento del 100% giornaliero.
     *   Feedback visivi animati (pop & flash) al completamento.

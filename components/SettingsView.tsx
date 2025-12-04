@@ -62,12 +62,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <div className="px-6 mb-8 flex items-end justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-gray-200 rounded-2xl text-gray-700">
+            <div className="p-3 bg-gray-200 dark:bg-gray-700 rounded-2xl text-gray-700 dark:text-gray-200">
                <Settings className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-800">Impostazioni</h1>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Impostazioni</h1>
           </div>
-          <p className="text-gray-500 text-sm pl-1">
+          <p className="text-gray-500 dark:text-gray-400 text-sm pl-1">
             Gestisci i medicinali, i dosaggi e le scorte.
           </p>
         </div>
@@ -76,12 +76,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           {/* Shopping Cart Button */}
           <button
             onClick={() => setShowShoppingList(true)}
-            className="p-3 rounded-xl border bg-white border-gray-200 text-gray-600 hover:bg-gray-50 relative transition-colors"
+            className="p-3 rounded-xl border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 relative transition-colors"
             aria-label="Lista Spesa"
           >
             <ShoppingCart className="w-5 h-5" />
             {lowStockCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">
                 {lowStockCount}
               </span>
             )}
@@ -92,8 +92,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             onClick={() => setSortAlphabetical(!sortAlphabetical)}
             className={`p-3 rounded-xl border transition-colors flex items-center gap-2 ${
               sortAlphabetical 
-                ? 'bg-blue-50 border-blue-200 text-blue-600' 
-                : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50'
+                ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-300' 
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
             }`}
             aria-label="Cambia ordinamento"
           >
@@ -106,14 +106,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         
         {/* Database Warning Banner */}
         {missingColumns && (
-          <div className="mx-6 bg-red-50 border border-red-200 rounded-2xl p-4 animate-in slide-in-from-top-4">
+          <div className="mx-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-2xl p-4 animate-in slide-in-from-top-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-red-100 rounded-lg text-red-600">
+              <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-lg text-red-600 dark:text-red-400">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-red-700 text-sm">Aggiornamento Database Richiesto</h3>
-                <p className="text-xs text-red-600 mt-1 leading-relaxed">
+                <h3 className="font-bold text-red-700 dark:text-red-300 text-sm">Aggiornamento Database Richiesto</h3>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-1 leading-relaxed">
                   Per utilizzare la gestione scorte, il database necessita di nuove colonne. Esegui questo SQL nella Dashboard Supabase:
                 </p>
                 
@@ -144,20 +144,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div key={user.id} className="px-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className={`text-lg font-bold flex items-center gap-2 ${user.themeColor.replace('bg-', 'text-')}`}>
-                  <img src={user.avatar} className="w-6 h-6 rounded-full border border-gray-200" alt="" />
+                  <img src={user.avatar} className="w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600" alt="" />
                   Medicine di {user.name}
                 </h2>
                 <button 
                   onClick={() => onAdd(user.id)}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center gap-1 transition-colors`}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center gap-1 transition-colors`}
                 >
                   <Plus className="w-3.5 h-3.5" /> Aggiungi
                 </button>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden transition-colors">
                 {userMeds.length > 0 ? (
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-gray-50 dark:divide-gray-700">
                     {userMeds.map(med => {
                        const hasStock = med.stockQuantity !== undefined && med.stockQuantity !== null;
                        const isLowStock = hasStock && (med.stockQuantity || 0) <= (med.stockThreshold || 5);
@@ -166,18 +166,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         <div 
                           key={med.id} 
                           onClick={() => onEdit(med)}
-                          className="p-4 flex items-center justify-between hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
+                          className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 transition-colors cursor-pointer"
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg bg-gray-100 text-gray-400`}>
+                            <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-300`}>
                               {getIcon(med.icon)}
                             </div>
                             <div>
-                              <h3 className="font-semibold text-gray-800 text-sm">{med.name}</h3>
-                              <div className="flex gap-2 text-xs text-gray-400 items-center mt-0.5">
+                              <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{med.name}</h3>
+                              <div className="flex gap-2 text-xs text-gray-400 dark:text-gray-500 items-center mt-0.5">
                                 <span>{med.dosage} • {med.timing}</span>
                                 {med.frequency !== Frequency.DAILY && (
-                                  <span className="bg-blue-50 text-blue-600 px-1.5 rounded flex items-center gap-0.5">
+                                  <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-1.5 rounded flex items-center gap-0.5">
                                     <Repeat className="w-3 h-3" /> {med.frequency === Frequency.ALTERNATE_DAYS ? 'Turno A' : 'Turno B'}
                                   </span>
                                 )}
@@ -187,19 +187,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           
                           <div className="flex items-center gap-3">
                             {hasStock && (
-                              <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${isLowStock ? 'bg-orange-50 text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
+                              <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${isLowStock ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                                  <Package className="w-3 h-3" />
                                  {med.stockQuantity}
                               </div>
                             )}
-                            <Pencil className="w-4 h-4 text-gray-300" />
+                            <Pencil className="w-4 h-4 text-gray-300 dark:text-gray-600" />
                           </div>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="p-8 text-center text-gray-400 text-sm">
+                  <div className="p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
                     Nessun medicinale configurato.
                   </div>
                 )}
@@ -209,7 +209,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         })}
 
         <div className="px-6 pt-4">
-           <div className="bg-blue-50 p-4 rounded-xl text-xs text-blue-600 leading-relaxed border border-blue-100">
+           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-xs text-blue-600 dark:text-blue-300 leading-relaxed border border-blue-100 dark:border-blue-900/30">
               <strong>Nota sulla privacy:</strong> I dati che inserisci qui vengono salvati nel tuo database Supabase privato.
            </div>
         </div>

@@ -4,6 +4,14 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 2025-12-03
+### Aggiunto
+- **Dark Mode Automatica 🌙**: 
+  - L'app ora si adatta automaticamente alle impostazioni di sistema (tema chiaro/scuro).
+  - Sfondi scuri rilassanti (grigio scuro/nero) per ridurre l'affaticamento degli occhi nelle ore serali.
+  - Testi, icone e bordi ottimizzati per il massimo contrasto e leggibilità in modalità notturna.
+  - La barra di stato del browser si adatta al tema.
+
 ## [1.14.0] - 2025-12-03
 ### Aggiunto
 - **Lista della Spesa Automatica 🛒**: 

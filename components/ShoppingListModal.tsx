@@ -44,7 +44,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl flex flex-col max-h-[85vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col max-h-[85vh] transition-colors">
         
         {/* Header */}
         <div className="p-5 rounded-t-3xl flex justify-between items-center bg-emerald-600 text-white shadow-lg z-10">
@@ -61,24 +61,24 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
         <div className="overflow-y-auto p-6 space-y-4 no-scrollbar flex-1">
           {lowStockItems.length === 0 ? (
             <div className="text-center py-10 opacity-60">
-              <ShoppingCart className="w-16 h-16 mx-auto mb-3 text-gray-300" />
-              <p className="text-gray-500 font-medium">Tutto a posto!</p>
-              <p className="text-sm text-gray-400">Le scorte sono sufficienti.</p>
+              <ShoppingCart className="w-16 h-16 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+              <p className="text-gray-500 dark:text-gray-400 font-medium">Tutto a posto!</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">Le scorte sono sufficienti.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-sm text-gray-500 mb-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                 I seguenti medicinali sono sotto la soglia minima:
               </p>
               {lowStockItems.map(med => {
                 const user = USERS[med.userId];
                 return (
-                  <div key={med.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <div key={med.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-3">
-                       <img src={user.avatar} className="w-8 h-8 rounded-full bg-white border border-gray-200" alt={user.name} />
+                       <img src={user.avatar} className="w-8 h-8 rounded-full bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500" alt={user.name} />
                        <div>
-                         <h3 className="font-bold text-gray-800 text-sm">{med.name}</h3>
-                         <p className="text-xs text-red-500 font-semibold">
+                         <h3 className="font-bold text-gray-800 dark:text-gray-200 text-sm">{med.name}</h3>
+                         <p className="text-xs text-red-500 dark:text-red-400 font-semibold">
                            Ne restano: {med.stockQuantity}
                          </p>
                        </div>
@@ -92,16 +92,16 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
 
         {/* Footer Actions */}
         {lowStockItems.length > 0 && (
-          <div className="p-5 border-t border-gray-100 bg-gray-50 rounded-b-3xl grid grid-cols-2 gap-3">
+          <div className="p-5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-b-3xl grid grid-cols-2 gap-3">
              <button
                 onClick={copyToClipboard}
-                className="py-3 px-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-100 flex items-center justify-center gap-2"
+                className="py-3 px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-sm hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center justify-center gap-2"
              >
                <Copy className="w-4 h-4" /> Copia
              </button>
              <button
                onClick={generateWhatsAppMessage}
-               className="py-3 px-4 bg-[#25D366] text-white rounded-xl font-bold text-sm shadow-lg shadow-green-100 hover:bg-[#20bd5a] flex items-center justify-center gap-2 active:scale-95 transition-transform"
+               className="py-3 px-4 bg-[#25D366] text-white rounded-xl font-bold text-sm shadow-lg shadow-green-100 dark:shadow-none hover:bg-[#20bd5a] flex items-center justify-center gap-2 active:scale-95 transition-transform"
              >
                <MessageCircle className="w-4 h-4" /> Invia WA
              </button>

@@ -88,7 +88,7 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col max-h-[90vh] transition-colors">
         
         {/* Header */}
         <div className={`p-5 rounded-t-3xl flex justify-between items-center ${userTheme.themeColor} text-white shadow-lg z-10`}>
@@ -103,14 +103,14 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
           
           {/* Name Input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
               <Type className="w-3.5 h-3.5" /> Nome Farmaco
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full px-4 py-3.5 rounded-2xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 transition-all font-bold text-lg text-gray-800 placeholder-gray-300"
+              className="w-full px-4 py-3.5 rounded-2xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 transition-all font-bold text-lg text-gray-800 dark:text-white placeholder-gray-300"
               placeholder="Es. Tachipirina"
               required
             />
@@ -119,28 +119,28 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             {/* Dosage Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
                 <Pill className="w-3.5 h-3.5" /> Dosaggio
               </label>
               <input
                 type="text"
                 value={formData.dosage}
                 onChange={(e) => setFormData({...formData, dosage: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 transition-all font-medium text-gray-800"
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 transition-all font-medium text-gray-800 dark:text-gray-200"
                 placeholder="Es. 1 cps"
               />
             </div>
 
             {/* Timing Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" /> Orario
               </label>
               <input
                 type="text"
                 value={formData.timing}
                 onChange={(e) => setFormData({...formData, timing: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 transition-all font-medium text-gray-800"
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 transition-all font-medium text-gray-800 dark:text-gray-200"
                 placeholder="Es. Mattina"
               />
             </div>
@@ -148,14 +148,14 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
 
           {/* Frequency Select */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" /> Frequenza
             </label>
             <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setFormData({...formData, frequency: Frequency.DAILY})}
-                className={`py-3 px-4 rounded-xl text-sm font-semibold text-left transition-all border ${formData.frequency === Frequency.DAILY ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
+                className={`py-3 px-4 rounded-xl text-sm font-semibold text-left transition-all border ${formData.frequency === Frequency.DAILY ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400'}`}
               >
                 Ogni Giorno
               </button>
@@ -164,33 +164,33 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
                  <button
                   type="button"
                   onClick={() => setFormData({...formData, frequency: Frequency.ALTERNATE_DAYS})}
-                  className={`py-3 px-3 rounded-xl text-sm font-semibold text-left transition-all border flex flex-col ${formData.frequency === Frequency.ALTERNATE_DAYS ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
+                  className={`py-3 px-3 rounded-xl text-sm font-semibold text-left transition-all border flex flex-col ${formData.frequency === Frequency.ALTERNATE_DAYS ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400'}`}
                 >
                   <span>Giorni Alterni (A)</span>
-                  <span className={`text-[10px] mt-0.5 ${isEvenDay ? 'text-green-600 font-bold' : 'text-gray-400'}`}>Inizia: {freqEvenLabel}</span>
+                  <span className={`text-[10px] mt-0.5 ${isEvenDay ? 'text-green-600 dark:text-green-400 font-bold' : 'text-gray-400'}`}>Inizia: {freqEvenLabel}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, frequency: Frequency.ALTERNATE_DAYS_ODD})}
-                  className={`py-3 px-3 rounded-xl text-sm font-semibold text-left transition-all border flex flex-col ${formData.frequency === Frequency.ALTERNATE_DAYS_ODD ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
+                  className={`py-3 px-3 rounded-xl text-sm font-semibold text-left transition-all border flex flex-col ${formData.frequency === Frequency.ALTERNATE_DAYS_ODD ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400'}`}
                 >
                   <span>Giorni Alterni (B)</span>
-                  <span className={`text-[10px] mt-0.5 ${!isEvenDay ? 'text-green-600 font-bold' : 'text-gray-400'}`}>Inizia: {freqOddLabel}</span>
+                  <span className={`text-[10px] mt-0.5 ${!isEvenDay ? 'text-green-600 dark:text-green-400 font-bold' : 'text-gray-400'}`}>Inizia: {freqOddLabel}</span>
                 </button>
               </div>
             </div>
           </div>
 
            {/* Stock Management Section */}
-           <div className="p-4 rounded-xl bg-orange-50 border border-orange-100">
+           <div className="p-4 rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-900/50">
              <div className="flex items-center justify-between mb-3">
-               <label className="text-xs font-bold text-orange-700 uppercase tracking-wide flex items-center gap-1.5">
+               <label className="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide flex items-center gap-1.5">
                   <Package className="w-3.5 h-3.5" /> Gestione Scorte
                </label>
                <button
                   type="button"
                   onClick={() => setEnableStock(!enableStock)}
-                  className={`w-10 h-6 rounded-full p-1 transition-colors ${enableStock ? 'bg-orange-500' : 'bg-gray-300'}`}
+                  className={`w-10 h-6 rounded-full p-1 transition-colors ${enableStock ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`}
                >
                  <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${enableStock ? 'translate-x-4' : 'translate-x-0'}`} />
                </button>
@@ -199,42 +199,42 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
              {enableStock && (
                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-orange-600 block">Q.tà Attuale</span>
+                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 block">Q.tà Attuale</span>
                     <input
                       type="number"
                       value={formData.stockQuantity === undefined ? '' : formData.stockQuantity}
                       onChange={(e) => setFormData({...formData, stockQuantity: e.target.value === '' ? undefined : parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
+                      className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
                       placeholder="0"
                     />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-orange-600 block">Avviso sotto</span>
+                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 block">Avviso sotto</span>
                     <input
                       type="number"
                       value={formData.stockThreshold === undefined ? '' : formData.stockThreshold}
                       onChange={(e) => setFormData({...formData, stockThreshold: e.target.value === '' ? undefined : parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white text-gray-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
+                      className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
                       placeholder="5"
                     />
                   </div>
                </div>
              )}
              {!enableStock && (
-               <p className="text-xs text-orange-400">Attiva per tracciare la quantità residua e ricevere avvisi.</p>
+               <p className="text-xs text-orange-400 dark:text-orange-500/70">Attiva per tracciare la quantità residua e ricevere avvisi.</p>
              )}
            </div>
 
           {/* Icon Selector */}
           <div className="space-y-1.5">
-             <label className="text-xs font-bold text-gray-400 uppercase tracking-wide">Icona</label>
+             <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Icona</label>
              <div className="grid grid-cols-4 gap-2">
                 {['pill', 'drop', 'clock', 'sachet'].map((ic) => (
                   <button
                     key={ic}
                     type="button"
                     onClick={() => setFormData({...formData, icon: ic as any})}
-                    className={`aspect-square rounded-xl border flex items-center justify-center transition-all ${formData.icon === ic ? `border-${userTheme.themeColor.replace('bg-', '')} bg-${userTheme.themeColor.replace('bg-', '')}/10 text-${userTheme.themeColor.replace('bg-', '')}` : 'border-gray-200 text-gray-400 hover:bg-gray-50'}`}
+                    className={`aspect-square rounded-xl border flex items-center justify-center transition-all ${formData.icon === ic ? `border-${userTheme.themeColor.replace('bg-', '')} bg-${userTheme.themeColor.replace('bg-', '')}/10 text-${userTheme.themeColor.replace('bg-', '')}` : 'border-gray-200 dark:border-gray-600 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                   >
                     {ic === 'pill' && <Pill className="w-5 h-5" />}
                     {ic === 'drop' && <Droplets className="w-5 h-5" />}
@@ -247,26 +247,26 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
 
           {/* Notes Input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-wide flex items-center gap-1.5">
+            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
               <FileText className="w-3.5 h-3.5" /> Note (Opzionale)
             </label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               rows={2}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 transition-all font-medium text-gray-800 resize-none"
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 transition-all font-medium text-gray-800 dark:text-white resize-none"
               placeholder="Note aggiuntive..."
             />
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="p-5 border-t border-gray-100 bg-gray-50 rounded-b-3xl flex gap-3">
+        <div className="p-5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-b-3xl flex gap-3">
            {!isNew && (
              <button
                 type="button"
                 onClick={handleDelete}
-                className="p-4 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-colors"
+                className="p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
              >
                <Trash2 className="w-5 h-5" />
              </button>
@@ -274,7 +274,7 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
            <button
              type="button"
              onClick={handleSubmit}
-             className={`flex-1 py-3 px-6 rounded-xl text-white font-bold shadow-lg shadow-blue-100 flex items-center justify-center gap-2 ${userTheme.themeColor} active:scale-95 transition-transform`}
+             className={`flex-1 py-3 px-6 rounded-xl text-white font-bold shadow-lg shadow-blue-100 dark:shadow-none flex items-center justify-center gap-2 ${userTheme.themeColor} active:scale-95 transition-transform`}
            >
              <Save className="w-5 h-5" />
              {isNew ? 'Crea Medicinale' : 'Salva Modifiche'}

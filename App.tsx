@@ -206,17 +206,17 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-          <p className="text-gray-500 font-medium">Caricamento...</p>
+          <Loader2 className="w-10 h-10 animate-spin text-blue-600 dark:text-blue-400" />
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Caricamento...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
       <Header 
         currentUser={currentUser} 
         onSwitchUser={setCurrentUserId}
@@ -230,7 +230,7 @@ const App: React.FC = () => {
             {/* Progress Bar or Completion Banner */}
             <div className="-mt-1 px-6 relative z-20 mb-6">
               {isComplete ? (
-                <div className="relative overflow-hidden bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 text-white rounded-2xl p-6 shadow-xl shadow-orange-200 animate-pop transform transition-all ring-4 ring-white">
+                <div className="relative overflow-hidden bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 text-white rounded-2xl p-6 shadow-xl shadow-orange-200 animate-pop transform transition-all ring-4 ring-white dark:ring-gray-700">
                   <Confetti />
                   <div className="relative z-10 flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -247,14 +247,14 @@ const App: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-full p-1.5 shadow-sm border border-gray-100 flex items-center gap-3 pr-4">
-                   <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden mx-2 relative">
+                <div className="bg-white dark:bg-gray-800 rounded-full p-1.5 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-3 pr-4 transition-colors">
+                   <div className="flex-1 h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden mx-2 relative">
                      <div 
                        className={`h-full transition-all duration-700 ease-out rounded-full ${currentUser.themeColor}`} 
                        style={{ width: `${progress}%` }}
                      />
                    </div>
-                   <span className="text-xs font-bold text-gray-400 min-w-[3rem] text-right">
+                   <span className="text-xs font-bold text-gray-400 dark:text-gray-500 min-w-[3rem] text-right">
                      {takenCount}/{activeMeds.length}
                    </span>
                 </div>
@@ -263,7 +263,7 @@ const App: React.FC = () => {
 
             <main className="pb-24">
               <div className="px-6 mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-800">Piano Giornaliero</h2>
+                <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">Piano Giornaliero</h2>
               </div>
 
               <div className="flex flex-col gap-1">
@@ -280,7 +280,7 @@ const App: React.FC = () => {
                 ))}
 
                 {activeMeds.length === 0 && (
-                   <div className="text-center py-10 text-gray-400">
+                   <div className="text-center py-10 text-gray-400 dark:text-gray-500">
                      Nessun medicinale previsto per oggi.
                    </div>
                 )}
@@ -330,11 +330,11 @@ const App: React.FC = () => {
       )}
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 pb-safe pt-2 px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 pb-safe pt-2 px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 transition-colors duration-300">
         <div className="flex justify-around items-center h-16 max-w-md mx-auto">
           <button 
             onClick={() => setActiveTab('today')}
-            className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${activeTab === 'today' ? currentUser.themeColor.replace('bg-', 'text-') : 'text-gray-400'}`}
+            className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${activeTab === 'today' ? currentUser.themeColor.replace('bg-', 'text-') : 'text-gray-400 dark:text-gray-500'}`}
           >
             <CalendarCheck className={`w-6 h-6 ${activeTab === 'today' ? 'fill-current opacity-20' : ''}`} strokeWidth={2.5} />
             <span className="text-[10px] font-bold tracking-wide">OGGI</span>
@@ -342,7 +342,7 @@ const App: React.FC = () => {
 
           <button 
             onClick={() => setActiveTab('history')}
-            className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${activeTab === 'history' ? currentUser.themeColor.replace('bg-', 'text-') : 'text-gray-400'}`}
+            className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${activeTab === 'history' ? currentUser.themeColor.replace('bg-', 'text-') : 'text-gray-400 dark:text-gray-500'}`}
           >
             <History className={`w-6 h-6 ${activeTab === 'history' ? 'fill-current opacity-20' : ''}`} strokeWidth={2.5} />
             <span className="text-[10px] font-bold tracking-wide">STORICO</span>
@@ -350,7 +350,7 @@ const App: React.FC = () => {
 
           <button 
             onClick={() => setActiveTab('settings')}
-            className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${activeTab === 'settings' ? currentUser.themeColor.replace('bg-', 'text-') : 'text-gray-400'}`}
+            className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${activeTab === 'settings' ? currentUser.themeColor.replace('bg-', 'text-') : 'text-gray-400 dark:text-gray-500'}`}
           >
             <Settings className={`w-6 h-6 ${activeTab === 'settings' ? 'fill-current opacity-20' : ''}`} strokeWidth={2.5} />
             <span className="text-[10px] font-bold tracking-wide">SETUP</span>
