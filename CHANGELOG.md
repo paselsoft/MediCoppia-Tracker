@@ -4,6 +4,13 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2025-12-03
+### Aggiunto
+- **Lista della Spesa Automatica 🛒**: 
+  - Nuova icona "Carrello" nella sezione Impostazioni con badge di notifica per i farmaci in esaurimento.
+  - Generazione automatica della lista dei medicinali sotto soglia.
+  - Pulsante **"Invia WA"** che pre-compila un messaggio WhatsApp per il partner con la lista di cose da comprare.
+
 ## [1.13.1] - 2025-12-03
 ### Corretto
 - **Avatar Rotti**: Risolto problema con l'URL dell'API DiceBear che causava la visualizzazione di un punto interrogativo per entrambi gli avatar. Aggiornati i nomi dei parametri `top` (`shortFlat`, `curvy`) per compatibilità con la versione v9 dell'API.

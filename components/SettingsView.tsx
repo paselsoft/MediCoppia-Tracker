@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Medication, UserID, UserProfile, Frequency } from '../types';
 import { USERS } from '../constants';
-import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Terminal, Copy, Check } from 'lucide-react';
+import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Terminal, Copy, Check, ShoppingCart } from 'lucide-react';
 import { checkStockColumnsExist } from '../services/storageService';
+import { ShoppingListModal } from './ShoppingListModal';
 
 interface SettingsViewProps {
   medications: Medication[];
@@ -21,6 +22,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [sortAlphabetical, setSortAlphabetical] = useState(false);
   const [missingColumns, setMissingColumns] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
+  const [showShoppingList, setShowShoppingList] = useState(false);
   
   // Explicit order: Barbara (First/Left), Paolo (Second/Right) based on user preference
   const userList = [USERS[UserID.BARBARA], USERS[UserID.PAOLO]];
@@ -48,6 +50,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
+  // Calculate items to buy
+  const lowStockCount = medications.filter(med => 
+    med.stockQuantity !== undefined && 
+    med.stockThreshold !== undefined && 
+    med.stockQuantity <= med.stockThreshold
+  ).length;
+
   return (
     <div className="pb-24 pt-6">
       <div className="px-6 mb-8 flex items-end justify-between">
@@ -63,17 +72,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => setSortAlphabetical(!sortAlphabetical)}
-          className={`p-3 rounded-xl border transition-colors flex items-center gap-2 ${
-            sortAlphabetical 
-              ? 'bg-blue-50 border-blue-200 text-blue-600' 
-              : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50'
-          }`}
-          aria-label="Cambia ordinamento"
-        >
-          {sortAlphabetical ? <ArrowDownAZ className="w-5 h-5" /> : <List className="w-5 h-5" />}
-        </button>
+        <div className="flex gap-2">
+          {/* Shopping Cart Button */}
+          <button
+            onClick={() => setShowShoppingList(true)}
+            className="p-3 rounded-xl border bg-white border-gray-200 text-gray-600 hover:bg-gray-50 relative transition-colors"
+            aria-label="Lista Spesa"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {lowStockCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                {lowStockCount}
+              </span>
+            )}
+          </button>
+
+          {/* Sort Button */}
+          <button
+            onClick={() => setSortAlphabetical(!sortAlphabetical)}
+            className={`p-3 rounded-xl border transition-colors flex items-center gap-2 ${
+              sortAlphabetical 
+                ? 'bg-blue-50 border-blue-200 text-blue-600' 
+                : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50'
+            }`}
+            aria-label="Cambia ordinamento"
+          >
+            {sortAlphabetical ? <ArrowDownAZ className="w-5 h-5" /> : <List className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       <div className="space-y-8">
@@ -188,6 +214,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
            </div>
         </div>
       </div>
+
+      {/* Shopping List Modal */}
+      <ShoppingListModal 
+        medications={medications}
+        isOpen={showShoppingList}
+        onClose={() => setShowShoppingList(false)}
+      />
     </div>
   );
 };

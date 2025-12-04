@@ -13,10 +13,10 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
     *   **Calendario Mensile**: Vista completa del mese con navigazione.
     *   **Indicatori di Aderenza**: Pallini colorati sul calendario (Verde=100%, Giallo=Parziale, Rosso=Saltato).
     *   Logica intelligente: distingue tra medicinali "Saltati" (ieri) e "Da prendere" (oggi).
-*   **Gestione Scorte (Inventory)**:
+*   **Gestione Scorte & Lista Spesa 🛒**:
     *   Tracciamento automatico della quantità residua.
     *   Badge di avviso quando le scorte sono in esaurimento o finite.
-    *   Gestione facile tramite le impostazioni.
+    *   **Lista Spesa Automatica**: Un click per generare la lista dei farmaci mancanti e inviarla via WhatsApp al partner ("Amore, serve comprare...").
 *   **UX & Gamification**:
     *   **Celebrazione Obiettivi**: Banner gratificante con animazione coriandoli (Confetti) al raggiungimento del 100% giornaliero.
     *   Feedback visivi animati (pop & flash) al completamento.
