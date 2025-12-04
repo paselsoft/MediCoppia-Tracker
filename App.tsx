@@ -7,7 +7,7 @@ import { MedicationCard } from './components/MedicationCard';
 import { HistoryView } from './components/HistoryView';
 import { EditMedicationModal } from './components/EditMedicationModal';
 import { SettingsView } from './components/SettingsView';
-import { USERS, SUCCESS_SOUND_BASE64 } from './constants';
+import { USERS } from './constants';
 import { UserID, Frequency, Medication } from './types';
 import * as storage from './services/storageService';
 import * as supabaseClient from './services/supabaseClient';
@@ -110,21 +110,7 @@ const App: React.FC = () => {
       return next;
     });
 
-    // 2. Play Sound immediately if taking (newStatus is true)
-    if (newStatus) {
-       // Check if this was the last one
-       const activeMeds = getDailyMedications;
-       const currentlyTakenCount = activeMeds.filter(m => logs[`${formattedDate}-${m.id}`]).length;
-       const total = activeMeds.length;
-       // If currently taken is total - 1, then this click completes it.
-       if (currentlyTakenCount === total - 1) {
-         const audio = new Audio(SUCCESS_SOUND_BASE64);
-         audio.volume = 0.6;
-         audio.play().catch(e => console.log("Audio play prevented:", e));
-       }
-    }
-
-    // 3. Update Stock (Locally & DB)
+    // 2. Update Stock (Locally & DB)
     setMedications(prev => prev.map(med => {
       if (med.id !== medId) return med;
       // If stock tracking is enabled
@@ -136,7 +122,7 @@ const App: React.FC = () => {
       return med;
     }));
 
-    // 4. Persist
+    // 3. Persist
     storage.toggleLog(formattedDate, medId, newStatus);
     
     // Only update DB stock if medication has stock tracking
@@ -234,7 +220,7 @@ const App: React.FC = () => {
       <Header 
         currentUser={currentUser} 
         onSwitchUser={setCurrentUserId}
-        availableUsers={Object.keys(USERS).map(key => USERS[key as UserID])}
+        availableUsers={[USERS[UserID.BARBARA], USERS[UserID.PAOLO]]} // Ordine corretto: Barbara (SX), Paolo (DX)
         dateDisplay={displayDate}
       />
 

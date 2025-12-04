@@ -21,7 +21,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [sortAlphabetical, setSortAlphabetical] = useState(false);
   const [missingColumns, setMissingColumns] = useState(false);
   const [sqlCopied, setSqlCopied] = useState(false);
-  const userList = Object.keys(USERS).map(key => USERS[key as UserID]);
+  
+  // Explicit order: Barbara (First/Left), Paolo (Second/Right) based on user preference
+  const userList = [USERS[UserID.BARBARA], USERS[UserID.PAOLO]];
 
   useEffect(() => {
     const checkDB = async () => {

@@ -4,6 +4,17 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.1] - 2025-12-03
+### Corretto
+- **Avatar Rotti**: Risolto problema con l'URL dell'API DiceBear che causava la visualizzazione di un punto interrogativo per entrambi gli avatar. Aggiornati i nomi dei parametri `top` (`shortFlat`, `curvy`) per compatibilità con la versione v9 dell'API.
+
+## [1.13.0] - 2025-12-03
+### Corretto
+- **Avatar Utenti**: Risolto un bug che mostrava un'immagine segnaposto (punto interrogativo) per Paolo. Aggiornati i parametri delle API DiceBear per garantire la corretta visualizzazione delle caricature per entrambi gli utenti.
+
+### Rimosso
+- **Feedback Sonoro**: Rimossa la funzionalità che riproduceva un suono al completamento del 100% degli obiettivi, su richiesta.
+
 ## [1.12.0] - 2025-12-03
 ### Aggiunto
 - **Vista Calendario Mensile**: La sezione "Storico" ora mostra un calendario mensile completo invece della striscia di 14 giorni.
