@@ -317,6 +317,7 @@ const App: React.FC = () => {
         {activeTab === 'settings' && (
           <SettingsView
              medications={medications}
+             currentUserId={currentUserId}
              onEdit={handleEditClick}
              onAdd={handleAddMedication}
           />

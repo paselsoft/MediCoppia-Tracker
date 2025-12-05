@@ -7,6 +7,7 @@ import { ShoppingListModal } from './ShoppingListModal';
 
 interface SettingsViewProps {
   medications: Medication[];
+  currentUserId: UserID;
   onEdit: (med: Medication) => void;
   onAdd: (userId: UserID) => void;
 }
@@ -17,6 +18,7 @@ alter table medications add column if not exists is_archived boolean default fal
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   medications,
+  currentUserId,
   onEdit,
   onAdd
 }) => {
@@ -25,8 +27,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [sqlCopied, setSqlCopied] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
   
-  // Explicit order: Barbara (First/Left), Paolo (Second/Right) based on user preference
-  const userList = [USERS[UserID.BARBARA], USERS[UserID.PAOLO]];
+  // Show only the current user in Settings
+  const userList = [USERS[currentUserId]];
 
   useEffect(() => {
     const checkDB = async () => {
@@ -51,7 +53,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  // Calculate items to buy (excluding archived)
+  // Calculate items to buy (Keeping this global for the household shopping list, 
+  // or filtered if preferred. For now, keeping global helps whoever goes to pharmacy)
   const lowStockCount = medications.filter(med => 
     !med.isArchived &&
     med.stockQuantity !== undefined && 
@@ -70,7 +73,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Impostazioni</h1>
           </div>
           <p className="text-gray-500 dark:text-gray-400 text-sm pl-1">
-            Gestisci i medicinali, i dosaggi e le scorte.
+            Gestisci i medicinali di {USERS[currentUserId].name}.
           </p>
         </div>
 
@@ -147,7 +150,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           const archivedMeds = userMeds.filter(m => m.isArchived);
           
           return (
-            <div key={user.id} className="px-6">
+            <div key={user.id} className="px-6 animate-in fade-in">
               <div className="flex items-center justify-between mb-4">
                 <h2 className={`text-lg font-bold flex items-center gap-2 ${user.themeColor.replace('bg-', 'text-')}`}>
                   <img src={user.avatar} className="w-6 h-6 rounded-full border border-gray-200 dark:border-gray-600" alt="" />

@@ -4,13 +4,10 @@ import {
   addDays, 
   isSameDay, 
   differenceInDays, 
-  startOfMonth, 
   endOfMonth, 
-  startOfWeek, 
   endOfWeek, 
   eachDayOfInterval, 
   addMonths, 
-  subMonths, 
   isAfter, 
   isSameMonth
 } from 'date-fns';
@@ -66,16 +63,25 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
   // Calendar Logic
   const calendarDays = useMemo(() => {
-    const monthStart = startOfMonth(currentMonth);
+    // Manual implementation of startOfMonth to avoid import error
+    const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
     const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart, { locale: it, weekStartsOn: 1 }); // Monday start
+    
+    // Manual implementation of startOfWeek (Monday start) to avoid import error
+    const day = monthStart.getDay();
+    const diff = (day === 0 ? 6 : day - 1);
+    const startDate = new Date(monthStart);
+    startDate.setDate(monthStart.getDate() - diff);
+    startDate.setHours(0, 0, 0, 0);
+
     const endDate = endOfWeek(monthEnd, { locale: it, weekStartsOn: 1 });
 
     return eachDayOfInterval({ start: startDate, end: endDate });
   }, [currentMonth]);
 
   const nextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
-  const prevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
+  // Use addMonths with negative value instead of subMonths to avoid import error
+  const prevMonth = () => setCurrentMonth(prev => addMonths(prev, -1));
 
   const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
 
