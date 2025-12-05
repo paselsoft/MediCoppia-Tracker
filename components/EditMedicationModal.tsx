@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Medication, UserProfile, Frequency } from '../types';
-import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail, Package, AlertTriangle } from 'lucide-react';
+import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail, Package, AlertTriangle, PauseCircle, PlayCircle } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
 interface EditMedicationModalProps {
@@ -30,7 +30,8 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
     notes: '',
     icon: 'pill',
     stockQuantity: undefined,
-    stockThreshold: 5
+    stockThreshold: 5,
+    isArchived: false
   });
 
   const [enableStock, setEnableStock] = useState(false);
@@ -45,7 +46,8 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
         notes: medication.notes || '',
         icon: medication.icon || 'pill',
         stockQuantity: medication.stockQuantity,
-        stockThreshold: medication.stockThreshold || 5
+        stockThreshold: medication.stockThreshold || 5,
+        isArchived: medication.isArchived || false
       });
       setEnableStock(medication.stockQuantity !== undefined && medication.stockQuantity !== null);
     }
@@ -74,7 +76,8 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
       icon: formData.icon as 'pill' | 'drop' | 'clock' | 'sachet',
       // If stock is not enabled, explicitly set to undefined so we don't send garbage
       stockQuantity: enableStock ? formData.stockQuantity : undefined,
-      stockThreshold: enableStock ? formData.stockThreshold : undefined
+      stockThreshold: enableStock ? formData.stockThreshold : undefined,
+      isArchived: formData.isArchived
     });
     onClose();
   };
@@ -84,6 +87,10 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
       if (onDelete) onDelete(medication.id);
       onClose();
     }
+  };
+
+  const handleArchiveToggle = () => {
+    setFormData({ ...formData, isArchived: !formData.isArchived });
   };
 
   return (
@@ -101,6 +108,31 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
         {/* Scrollable Form Content */}
         <div className="overflow-y-auto p-6 space-y-5 no-scrollbar">
           
+          {/* Active/Archive Status - ONLY IF NOT NEW */}
+          {!isNew && (
+            <div 
+              onClick={handleArchiveToggle}
+              className={`p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${formData.isArchived ? 'bg-gray-100 dark:bg-gray-700 border-gray-200 dark:border-gray-600' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/40'}`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-full ${formData.isArchived ? 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-300' : 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400'}`}>
+                  {formData.isArchived ? <PauseCircle className="w-5 h-5" /> : <PlayCircle className="w-5 h-5" />}
+                </div>
+                <div>
+                  <h3 className={`font-bold text-sm ${formData.isArchived ? 'text-gray-700 dark:text-gray-300' : 'text-green-800 dark:text-green-300'}`}>
+                    {formData.isArchived ? 'Terapia Sospesa' : 'Terapia Attiva'}
+                  </h3>
+                  <p className="text-xs opacity-70 dark:text-gray-400">
+                    {formData.isArchived ? 'Il farmaco non appare nella lista giornaliera.' : 'Il farmaco è visibile nel piano giornaliero.'}
+                  </p>
+                </div>
+              </div>
+              <div className={`w-10 h-6 rounded-full p-1 transition-colors ${!formData.isArchived ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${!formData.isArchived ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+            </div>
+          )}
+
           {/* Name Input */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide flex items-center gap-1.5">

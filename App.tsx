@@ -161,7 +161,8 @@ const App: React.FC = () => {
       timing: '',
       frequency: Frequency.DAILY,
       icon: 'pill',
-      stockThreshold: 5 // default
+      stockThreshold: 5,
+      isArchived: false
     });
   };
 
@@ -180,7 +181,8 @@ const App: React.FC = () => {
   };
 
   const getDailyMedications = useMemo(() => {
-    const userMeds = medications.filter(m => m.userId === currentUserId);
+    // IMPORTANT: Filter out archived medications
+    const userMeds = medications.filter(m => m.userId === currentUserId && !m.isArchived);
     
     // Logic for alternate days (Turno A vs Turno B)
     // Epoch: Jan 1 2024. Even days vs Odd days.
@@ -196,13 +198,18 @@ const App: React.FC = () => {
   }, [currentUserId, today, medications]);
 
   const allUserMedications = useMemo(() => {
+    // For history, we might want to see everything? 
+    // Usually history should show what was active AT THAT TIME. 
+    // But since our history logic is simple (showing list of all meds), let's pass all meds
+    // so the history grid isn't empty for old dates.
+    // However, we might want to visually distinguish them in HistoryView.
     return medications.filter(m => m.userId === currentUserId);
   }, [currentUserId, medications]);
 
   const activeMeds = getDailyMedications; // All meds in this list are active today
   const takenCount = activeMeds.filter(m => logs[`${formattedDate}-${m.id}`]).length;
   const progress = activeMeds.length > 0 ? (takenCount / activeMeds.length) * 100 : 0;
-  const isComplete = progress === 100 && takenCount > 0;
+  const isComplete = progress === 100 && takenCount > 0 && activeMeds.length > 0;
 
   if (isLoading) {
     return (
@@ -255,7 +262,7 @@ const App: React.FC = () => {
                      />
                    </div>
                    <span className="text-xs font-bold text-gray-400 dark:text-gray-500 min-w-[3rem] text-right">
-                     {takenCount}/{activeMeds.length}
+                     {activeMeds.length > 0 ? `${takenCount}/${activeMeds.length}` : '-/-'}
                    </span>
                 </div>
               )}

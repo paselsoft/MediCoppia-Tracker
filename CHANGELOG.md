@@ -4,6 +4,14 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.0] - 2025-12-03
+### Aggiunto
+- **Archiviazione/Sospensione Terapia ⏸️**:
+  - Nuova opzione nel pannello di modifica per "Sospendere la Terapia".
+  - I farmaci sospesi scompaiono dalla lista giornaliera e dalla lista spesa, ma non vengono eliminati.
+  - Sezione "Farmaci Sospesi" separata nelle Impostazioni per riattivarli facilmente in futuro.
+  - Ideale per terapie cicliche (es. Enterogermina) o integratori a rotazione.
+
 ## [1.15.0] - 2025-12-03
 ### Aggiunto
 - **Dark Mode Automatica 🌙**: 

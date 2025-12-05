@@ -15,7 +15,8 @@ const mapDbToMed = (row: any): Medication => ({
   notes: row.notes,
   icon: row.icon,
   stockQuantity: row.stock_quantity,
-  stockThreshold: row.stock_threshold
+  stockThreshold: row.stock_threshold,
+  isArchived: row.is_archived
 });
 
 // Transform database row to Log format
@@ -62,7 +63,8 @@ export const initializeDefaultDataIfNeeded = async () => {
         timing: med.timing,
         frequency: med.frequency,
         notes: med.notes,
-        icon: med.icon
+        icon: med.icon,
+        is_archived: false
       }));
       
       const { error: insertError } = await supabase.from('medications').insert(dbMeds);
@@ -121,7 +123,8 @@ export const saveMedication = async (med: Medication) => {
   const fullDbRow = {
     ...baseDbRow,
     stock_quantity: med.stockQuantity,
-    stock_threshold: med.stockThreshold
+    stock_threshold: med.stockThreshold,
+    is_archived: med.isArchived
   };
 
   try {
@@ -131,10 +134,11 @@ export const saveMedication = async (med: Medication) => {
     if (error) {
       // Check for Schema error regarding missing columns
       // PostgREST error usually contains "Could not find the '...'"
-      if (error.message?.includes('stock_quantity') || error.message?.includes('stock_threshold')) {
-        console.warn('Stock columns missing in database. Saving basic medication data only (Fallback mode).');
+      const msg = error.message || '';
+      if (msg.includes('stock_quantity') || msg.includes('stock_threshold') || msg.includes('is_archived')) {
+        console.warn('New columns missing in database. Saving basic medication data only (Fallback mode).');
         
-        // Retry with safe payload (without stock fields)
+        // Retry with safe payload
         const { error: retryError } = await supabase.from('medications').upsert(baseDbRow);
         
         if (retryError && !isNetworkError(retryError)) {
@@ -212,8 +216,6 @@ export const updateStock = async (medId: string, change: number) => {
   if (!supabase) return;
 
   try {
-    // We try to fetch stock first. If the column 'stock_quantity' doesn't exist, this request will fail.
-    // We catch that failure to prevent crashing or further errors.
     const { data: med, error: fetchError } = await supabase
       .from('medications')
       .select('stock_quantity')
@@ -221,11 +223,9 @@ export const updateStock = async (medId: string, change: number) => {
       .single();
 
     if (fetchError || !med) {
-        // If column missing or med not found, just exit silently.
         return;
     }
     
-    // If feature not enabled for this med
     if (med.stock_quantity === null || med.stock_quantity === undefined) return;
 
     const newQuantity = med.stock_quantity + change;
@@ -236,7 +236,6 @@ export const updateStock = async (medId: string, change: number) => {
       .eq('id', medId);
 
     if (updateError && !isNetworkError(updateError)) {
-        // Only log if it's NOT a missing column error (though the fetch check above should cover it)
         if (!updateError.message.includes('stock_quantity')) {
             console.error('Error updating stock:', updateError.message);
         }
@@ -254,13 +253,11 @@ export const checkStockColumnsExist = async (): Promise<boolean> => {
   
   try {
     // Try to select the new columns limiting to 1 row. 
-    // If they don't exist, Supabase will throw a specific error code or message.
     const { error } = await supabase
       .from('medications')
-      .select('stock_quantity, stock_threshold')
+      .select('stock_quantity, stock_threshold, is_archived')
       .limit(1);
 
-    // If there is an error (likely column does not exist), return false
     if (error) return false;
     
     return true;

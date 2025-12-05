@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Medication, UserID, UserProfile, Frequency } from '../types';
 import { USERS } from '../constants';
-import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Terminal, Copy, Check, ShoppingCart } from 'lucide-react';
+import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Terminal, Copy, Check, ShoppingCart, Archive, PlayCircle } from 'lucide-react';
 import { checkStockColumnsExist } from '../services/storageService';
 import { ShoppingListModal } from './ShoppingListModal';
 
@@ -12,7 +12,8 @@ interface SettingsViewProps {
 }
 
 const REQUIRED_SQL = `alter table medications add column if not exists stock_quantity numeric;
-alter table medications add column if not exists stock_threshold numeric;`;
+alter table medications add column if not exists stock_threshold numeric;
+alter table medications add column if not exists is_archived boolean default false;`;
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   medications,
@@ -50,8 +51,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  // Calculate items to buy
+  // Calculate items to buy (excluding archived)
   const lowStockCount = medications.filter(med => 
+    !med.isArchived &&
     med.stockQuantity !== undefined && 
     med.stockThreshold !== undefined && 
     med.stockQuantity <= med.stockThreshold
@@ -114,7 +116,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="flex-1">
                 <h3 className="font-bold text-red-700 dark:text-red-300 text-sm">Aggiornamento Database Richiesto</h3>
                 <p className="text-xs text-red-600 dark:text-red-400 mt-1 leading-relaxed">
-                  Per utilizzare la gestione scorte, il database necessita di nuove colonne. Esegui questo SQL nella Dashboard Supabase:
+                  Per utilizzare le nuove funzionalità (scorte, archiviazione), il database necessita di nuove colonne. Esegui questo SQL nella Dashboard Supabase:
                 </p>
                 
                 <div className="mt-3 bg-gray-900 rounded-lg p-3 relative group">
@@ -139,6 +141,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           if (sortAlphabetical) {
             userMeds = [...userMeds].sort((a, b) => a.name.localeCompare(b.name));
           }
+
+          // Split into active and archived
+          const activeMeds = userMeds.filter(m => !m.isArchived);
+          const archivedMeds = userMeds.filter(m => m.isArchived);
           
           return (
             <div key={user.id} className="px-6">
@@ -155,10 +161,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </button>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden transition-colors">
-                {userMeds.length > 0 ? (
+              {/* Active Meds List */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden transition-colors mb-4">
+                {activeMeds.length > 0 ? (
                   <div className="divide-y divide-gray-50 dark:divide-gray-700">
-                    {userMeds.map(med => {
+                    {activeMeds.map(med => {
                        const hasStock = med.stockQuantity !== undefined && med.stockQuantity !== null;
                        const isLowStock = hasStock && (med.stockQuantity || 0) <= (med.stockThreshold || 5);
                        
@@ -200,10 +207,46 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
                 ) : (
                   <div className="p-8 text-center text-gray-400 dark:text-gray-500 text-sm">
-                    Nessun medicinale configurato.
+                    Nessun medicinale attivo.
                   </div>
                 )}
               </div>
+
+              {/* Archived Meds List */}
+              {archivedMeds.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2 px-1 flex items-center gap-1.5">
+                    <Archive className="w-3.5 h-3.5" /> Farmaci Sospesi / Archiviati
+                  </h3>
+                  <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700/50 overflow-hidden">
+                    <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                      {archivedMeds.map(med => (
+                        <div 
+                          key={med.id} 
+                          onClick={() => onEdit(med)}
+                          className="p-3 flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors cursor-pointer opacity-70 hover:opacity-100"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-1.5 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500">
+                              {getIcon(med.icon)}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-600 dark:text-gray-400 text-sm line-through decoration-gray-400/50">{med.name}</h3>
+                              <p className="text-[10px] text-gray-400 dark:text-gray-500">Sospeso</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                             <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md flex items-center gap-1">
+                                <PlayCircle className="w-3 h-3" />
+                                RIATTIVA
+                             </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

@@ -17,6 +17,9 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
     *   Tracciamento automatico della quantità residua.
     *   Badge di avviso quando le scorte sono in esaurimento o finite.
     *   **Lista Spesa Automatica**: Un click per generare la lista dei farmaci mancanti e inviarla via WhatsApp al partner ("Amore, serve comprare...").
+*   **Sospensione Terapia ⏸️**:
+    *   Possibilità di **Archiviare** i farmaci temporaneamente (es. fine ciclo antibiotico o integratore).
+    *   Rimangono salvati nelle impostazioni ma non appaiono nella lista giornaliera.
 *   **Dark Mode Automatica 🌙**:
     *   Si attiva automaticamente in base alle impostazioni del sistema operativo.
     *   Colori ottimizzati per l'uso notturno e per ridurre l'affaticamento visivo.
@@ -76,6 +79,7 @@ create table medications (
   icon text,      -- 'pill', 'drop', 'clock', 'sachet'
   stock_quantity numeric, -- NUOVO: Quantità residua
   stock_threshold numeric, -- NUOVO: Soglia avviso
+  is_archived boolean default false, -- NUOVO: Stato archiviazione
   created_at timestamptz default now()
 );
 
@@ -99,9 +103,11 @@ create policy "Accesso Totale" on medications for all using (true);
 create policy "Accesso Totale" on logs for all using (true);
 ```
 
-**⚠️ Aggiornamento Versione 1.11.0 (Gestione Scorte)**:
+**⚠️ Aggiornamento Versione 1.16.0**:
 Se hai già il database creato, esegui questi comandi per aggiungere le colonne mancanti:
 ```sql
+alter table medications add column is_archived boolean default false;
+-- Se non hai aggiunto quelle precedenti:
 alter table medications add column stock_quantity numeric;
 alter table medications add column stock_threshold numeric;
 ```

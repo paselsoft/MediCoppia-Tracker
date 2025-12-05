@@ -21,6 +21,8 @@ export interface Medication {
   // Inventory fields
   stockQuantity?: number; // Quantità residua
   stockThreshold?: number; // Soglia per l'avviso (es. avvisami quando ne restano 5)
+  // Status field
+  isArchived?: boolean; // Se true, il farmaco è sospeso/in pausa
 }
 
 export interface LogEntry {
