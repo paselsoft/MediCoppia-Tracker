@@ -16,7 +16,8 @@ const mapDbToMed = (row: any): Medication => ({
   icon: row.icon,
   stockQuantity: row.stock_quantity,
   stockThreshold: row.stock_threshold,
-  isArchived: row.is_archived
+  isArchived: row.is_archived,
+  sharedId: row.shared_id
 });
 
 // Transform database row to Log format
@@ -64,7 +65,8 @@ export const initializeDefaultDataIfNeeded = async () => {
         frequency: med.frequency,
         notes: med.notes,
         icon: med.icon,
-        is_archived: false
+        is_archived: false,
+        shared_id: null
       }));
       
       const { error: insertError } = await supabase.from('medications').insert(dbMeds);
@@ -124,7 +126,8 @@ export const saveMedication = async (med: Medication) => {
     ...baseDbRow,
     stock_quantity: med.stockQuantity,
     stock_threshold: med.stockThreshold,
-    is_archived: med.isArchived
+    is_archived: med.isArchived,
+    shared_id: med.sharedId
   };
 
   try {
@@ -133,9 +136,8 @@ export const saveMedication = async (med: Medication) => {
     
     if (error) {
       // Check for Schema error regarding missing columns
-      // PostgREST error usually contains "Could not find the '...'"
       const msg = error.message || '';
-      if (msg.includes('stock_quantity') || msg.includes('stock_threshold') || msg.includes('is_archived')) {
+      if (msg.includes('stock_quantity') || msg.includes('stock_threshold') || msg.includes('is_archived') || msg.includes('shared_id')) {
         console.warn('New columns missing in database. Saving basic medication data only (Fallback mode).');
         
         // Retry with safe payload
@@ -146,6 +148,16 @@ export const saveMedication = async (med: Medication) => {
         }
       } else if (!isNetworkError(error)) {
         console.error('Error saving medication:', error.message);
+      }
+    } else {
+      // If save successful and this is a shared medication, we might want to sync the stock quantity 
+      // to other medications sharing the same ID immediately (in case the user manually edited the quantity)
+      if (med.sharedId && med.stockQuantity !== undefined) {
+         await supabase
+          .from('medications')
+          .update({ stock_quantity: med.stockQuantity })
+          .eq('shared_id', med.sharedId)
+          .neq('id', med.id); // Update others, not self (already updated)
       }
     }
   } catch (e) {
@@ -216,24 +228,31 @@ export const updateStock = async (medId: string, change: number) => {
   if (!supabase) return;
 
   try {
+    // 1. Get the current medication to check for sharedId
     const { data: med, error: fetchError } = await supabase
       .from('medications')
-      .select('stock_quantity')
+      .select('id, stock_quantity, shared_id')
       .eq('id', medId)
       .single();
 
-    if (fetchError || !med) {
-        return;
-    }
+    if (fetchError || !med) return;
     
     if (med.stock_quantity === null || med.stock_quantity === undefined) return;
 
     const newQuantity = med.stock_quantity + change;
     
-    const { error: updateError } = await supabase
-      .from('medications')
-      .update({ stock_quantity: newQuantity })
-      .eq('id', medId);
+    // 2. Determine update scope
+    let query = supabase.from('medications').update({ stock_quantity: newQuantity });
+    
+    if (med.shared_id) {
+      // Update ALL medications with this shared_id
+      query = query.eq('shared_id', med.shared_id);
+    } else {
+      // Update ONLY this medication
+      query = query.eq('id', medId);
+    }
+
+    const { error: updateError } = await query;
 
     if (updateError && !isNetworkError(updateError)) {
         if (!updateError.message.includes('stock_quantity')) {
@@ -255,7 +274,7 @@ export const checkStockColumnsExist = async (): Promise<boolean> => {
     // Try to select the new columns limiting to 1 row. 
     const { error } = await supabase
       .from('medications')
-      .select('stock_quantity, stock_threshold, is_archived')
+      .select('stock_quantity, stock_threshold, is_archived, shared_id')
       .limit(1);
 
     if (error) return false;

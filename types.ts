@@ -23,6 +23,8 @@ export interface Medication {
   stockThreshold?: number; // Soglia per l'avviso (es. avvisami quando ne restano 5)
   // Status field
   isArchived?: boolean; // Se true, il farmaco è sospeso/in pausa
+  // Shared Inventory
+  sharedId?: string; // ID univoco (es. slug del nome) per collegare farmaci di utenti diversi alla stessa scorta
 }
 
 export interface LogEntry {

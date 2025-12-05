@@ -102,6 +102,9 @@ const App: React.FC = () => {
     const key = `${formattedDate}-${medId}`;
     const newStatus = !logs[key];
     
+    // Find the medication being toggled to check for sharedId
+    const targetMed = medications.find(m => m.id === medId);
+    
     // 1. Update Logs State
     setLogs(prev => {
       const next = { ...prev };
@@ -112,7 +115,12 @@ const App: React.FC = () => {
 
     // 2. Update Stock (Locally & DB)
     setMedications(prev => prev.map(med => {
-      if (med.id !== medId) return med;
+      // Determine if this med needs updating
+      // Update if it's the target med OR if it shares the same sharedId
+      const shouldUpdate = med.id === medId || (targetMed?.sharedId && med.sharedId === targetMed.sharedId);
+      
+      if (!shouldUpdate) return med;
+
       // If stock tracking is enabled
       if (med.stockQuantity !== undefined && med.stockQuantity !== null) {
         // Taking (true) -> -1, Untaking (false) -> +1
@@ -126,8 +134,7 @@ const App: React.FC = () => {
     storage.toggleLog(formattedDate, medId, newStatus);
     
     // Only update DB stock if medication has stock tracking
-    const med = medications.find(m => m.id === medId);
-    if (med && med.stockQuantity !== undefined) {
+    if (targetMed && targetMed.stockQuantity !== undefined) {
       storage.updateStock(medId, newStatus ? -1 : 1);
     }
   };
@@ -137,7 +144,17 @@ const App: React.FC = () => {
     if (isNewMedication) {
       setMedications(prev => [...prev, updatedMed]);
     } else {
-      setMedications(prev => prev.map(med => med.id === updatedMed.id ? updatedMed : med));
+      setMedications(prev => prev.map(med => {
+        // Update the target medication
+        if (med.id === updatedMed.id) return updatedMed;
+        
+        // If the updated medication has a shared ID and stock info, sync other meds with same sharedId
+        if (updatedMed.sharedId && med.sharedId === updatedMed.sharedId && updatedMed.stockQuantity !== undefined) {
+           return { ...med, stockQuantity: updatedMed.stockQuantity };
+        }
+        
+        return med;
+      }));
     }
     
     storage.saveMedication(updatedMed);
@@ -162,7 +179,8 @@ const App: React.FC = () => {
       frequency: Frequency.DAILY,
       icon: 'pill',
       stockThreshold: 5,
-      isArchived: false
+      isArchived: false,
+      sharedId: undefined
     });
   };
 

@@ -14,7 +14,8 @@ interface SettingsViewProps {
 
 const REQUIRED_SQL = `alter table medications add column if not exists stock_quantity numeric;
 alter table medications add column if not exists stock_threshold numeric;
-alter table medications add column if not exists is_archived boolean default false;`;
+alter table medications add column if not exists is_archived boolean default false;
+alter table medications add column if not exists shared_id text;`;
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   medications,

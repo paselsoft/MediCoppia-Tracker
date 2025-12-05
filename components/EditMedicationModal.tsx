@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Medication, UserProfile, Frequency } from '../types';
-import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail, Package, AlertTriangle, PauseCircle, PlayCircle } from 'lucide-react';
+import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail, Package, AlertTriangle, PauseCircle, PlayCircle, Users } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
 interface EditMedicationModalProps {
@@ -31,10 +31,12 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
     icon: 'pill',
     stockQuantity: undefined,
     stockThreshold: 5,
-    isArchived: false
+    isArchived: false,
+    sharedId: undefined
   });
 
   const [enableStock, setEnableStock] = useState(false);
+  const [isShared, setIsShared] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -47,9 +49,11 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
         icon: medication.icon || 'pill',
         stockQuantity: medication.stockQuantity,
         stockThreshold: medication.stockThreshold || 5,
-        isArchived: medication.isArchived || false
+        isArchived: medication.isArchived || false,
+        sharedId: medication.sharedId
       });
       setEnableStock(medication.stockQuantity !== undefined && medication.stockQuantity !== null);
+      setIsShared(!!medication.sharedId);
     }
   }, [medication, isOpen]);
 
@@ -59,13 +63,17 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
   const daysSinceEpoch = differenceInDays(new Date(), new Date(2024, 0, 1));
   const isEvenDay = daysSinceEpoch % 2 === 0;
   
-  // If today is Even: ALTERNATE_DAYS is Today, ALTERNATE_DAYS_ODD is Tomorrow
-  // If today is Odd: ALTERNATE_DAYS is Tomorrow, ALTERNATE_DAYS_ODD is Today
   const freqEvenLabel = isEvenDay ? "Sì, Oggi" : "No, Domani";
   const freqOddLabel = !isEvenDay ? "Sì, Oggi" : "No, Domani";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Generate shared ID if shared is enabled
+    // We use a simple slug of the name: "Vitamin C" -> "vitamin-c"
+    const nameSlug = formData.name ? formData.name.toLowerCase().trim().replace(/\s+/g, '-') : undefined;
+    const finalSharedId = (enableStock && isShared && nameSlug) ? nameSlug : undefined;
+
     onSave({
       ...medication, // Keep ID and UserId
       name: formData.name || 'Nuovo Medicinale',
@@ -77,7 +85,8 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
       // If stock is not enabled, explicitly set to undefined so we don't send garbage
       stockQuantity: enableStock ? formData.stockQuantity : undefined,
       stockThreshold: enableStock ? formData.stockThreshold : undefined,
-      isArchived: formData.isArchived
+      isArchived: formData.isArchived,
+      sharedId: finalSharedId
     });
     onClose();
   };
@@ -229,27 +238,49 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
              </div>
              
              {enableStock && (
-               <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 block">Q.tà Attuale</span>
-                    <input
-                      type="number"
-                      value={formData.stockQuantity === undefined ? '' : formData.stockQuantity}
-                      onChange={(e) => setFormData({...formData, stockQuantity: e.target.value === '' ? undefined : parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 block">Avviso sotto</span>
-                    <input
-                      type="number"
-                      value={formData.stockThreshold === undefined ? '' : formData.stockThreshold}
-                      onChange={(e) => setFormData({...formData, stockThreshold: e.target.value === '' ? undefined : parseInt(e.target.value)})}
-                      className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
-                      placeholder="5"
-                    />
-                  </div>
+               <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 block">Q.tà Attuale</span>
+                      <input
+                        type="number"
+                        value={formData.stockQuantity === undefined ? '' : formData.stockQuantity}
+                        onChange={(e) => setFormData({...formData, stockQuantity: e.target.value === '' ? undefined : parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 block">Avviso sotto</span>
+                      <input
+                        type="number"
+                        value={formData.stockThreshold === undefined ? '' : formData.stockThreshold}
+                        onChange={(e) => setFormData({...formData, stockThreshold: e.target.value === '' ? undefined : parseInt(e.target.value)})}
+                        className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
+                        placeholder="5"
+                      />
+                    </div>
+                 </div>
+
+                 {/* Shared Stock Toggle */}
+                 <div className="pt-2 border-t border-orange-100 dark:border-orange-900/30">
+                    <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                          <div>
+                             <span className="text-xs font-bold text-orange-700 dark:text-orange-300 block">Scorta Condivisa</span>
+                             <span className="text-[10px] text-orange-500/80 dark:text-orange-400/60 leading-tight block">Scala anche dal partner</span>
+                          </div>
+                       </div>
+                       <button
+                          type="button"
+                          onClick={() => setIsShared(!isShared)}
+                          className={`w-8 h-5 rounded-full p-1 transition-colors ${isShared ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                        >
+                          <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform ${isShared ? 'translate-x-3' : 'translate-x-0'}`} />
+                        </button>
+                    </div>
+                 </div>
                </div>
              )}
              {!enableStock && (
