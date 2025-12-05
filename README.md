@@ -15,6 +15,7 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
     *   Logica intelligente: distingue tra medicinali "Saltati" (ieri) e "Da prendere" (oggi).
 *   **Gestione Scorte & Lista Spesa 🛒**:
     *   Tracciamento automatico della quantità residua.
+    *   **Scorta Condivisa 🤝**: Sincronizzazione automatica della quantità per medicinali usati in comune (es. stessa boccetta/scatola per entrambi).
     *   Badge di avviso quando le scorte sono in esaurimento o finite.
     *   **Lista Spesa Automatica**: Un click per generare la lista dei farmaci mancanti e inviarla via WhatsApp al partner ("Amore, serve comprare...").
 *   **Sospensione Terapia ⏸️**:
@@ -80,6 +81,7 @@ create table medications (
   stock_quantity numeric, -- NUOVO: Quantità residua
   stock_threshold numeric, -- NUOVO: Soglia avviso
   is_archived boolean default false, -- NUOVO: Stato archiviazione
+  shared_id text, -- NUOVO: ID condivisione scorta
   created_at timestamptz default now()
 );
 
@@ -103,11 +105,12 @@ create policy "Accesso Totale" on medications for all using (true);
 create policy "Accesso Totale" on logs for all using (true);
 ```
 
-**⚠️ Aggiornamento Versione 1.16.0**:
+**⚠️ Aggiornamento Versione 1.17.0**:
 Se hai già il database creato, esegui questi comandi per aggiungere le colonne mancanti:
 ```sql
-alter table medications add column is_archived boolean default false;
+alter table medications add column shared_id text;
 -- Se non hai aggiunto quelle precedenti:
+alter table medications add column is_archived boolean default false;
 alter table medications add column stock_quantity numeric;
 alter table medications add column stock_threshold numeric;
 ```

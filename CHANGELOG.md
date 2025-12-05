@@ -4,6 +4,16 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2025-12-05
+### Aggiunto
+- **Scorta Condivisa 🤝**:
+  - Nuova funzionalità per sincronizzare la quantità di un medicinale tra Paolo e Barbara.
+  - Utile quando entrambi attingono dalla stessa confezione (es. Uncaria).
+  - Attivabile dal pannello di modifica selezionando "Scorta Condivisa".
+
+### Migliorato
+- **Impostazioni Personali**: La sezione Impostazioni ora mostra solo i medicinali dell'utente correntemente selezionato, riducendo la confusione e migliorando l'organizzazione.
+
 ## [1.16.0] - 2025-12-03
 ### Aggiunto
 - **Archiviazione/Sospensione Terapia ⏸️**:
