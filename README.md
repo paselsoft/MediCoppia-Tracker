@@ -4,42 +4,29 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
 
 ## ✨ Funzionalità Principali
 
-*   **Multi-Utente**: Profili distinti per Paolo e Barbara con temi visivi dedicati (Blu e Rosa).
-*   **Smart Login 🧠**: Rileva automaticamente il sistema operativo per selezionare l'utente:
-    *   **Android** → Barbara
-    *   **iOS (iPhone/iPad)** → Paolo
-*   **Sincronizzazione Cloud**: Database Supabase per dati in tempo reale su tutti i dispositivi.
+*   **Multi-Utente Smart**:
+    *   Profili per Paolo e Barbara con temi dedicati.
+    *   **Login Automatico**: Rileva l'OS (Android -> Barbara, iOS -> Paolo) per un accesso immediato.
+    *   **Setup Esclusivo**: Solo Paolo ha accesso al tab di configurazione avanzata per gestire i farmaci di tutta la famiglia.
 *   **Gestione Turni Avanzata**:
     *   Supporto per frequenza giornaliera.
     *   Logica intelligente per "Giorni Alterni" (Turno A / Turno B) basata su epoca fissa.
+*   **Farmacia Virtuale & Inventario 🏥**:
+    *   **Magazzino Centralizzato**: Tabella separata per i prodotti fisici.
+    *   **Scorta Condivisa Reale**: Assunzioni diverse (es. Paolo Mattina e Barbara Sera) scalano dallo stesso prodotto in magazzino.
+    *   **Rifornimento Rapido**: Pulsante `+` per aggiungere al volo una scatola alla scorta senza calcoli.
+    *   **Lista Spesa WhatsApp**: Generazione automatica lista mancanti da inviare al partner.
 *   **Storico e Statistiche**: 
-    *   **Calendario Mensile**: Vista completa del mese con navigazione.
-    *   **Indicatori di Aderenza**: Pallini colorati sul calendario (Verde=100%, Giallo=Parziale, Rosso=Saltato).
-    *   Logica intelligente: distingue tra medicinali "Saltati" (ieri) e "Da prendere" (oggi).
-*   **Gestione Scorte & Lista Spesa 🛒**:
-    *   Tracciamento automatico della quantità residua.
-    *   **Scorta Condivisa 🤝**: Sincronizzazione automatica della quantità per medicinali usati in comune (es. stessa boccetta/scatola per entrambi).
-    *   Badge di avviso quando le scorte sono in esaurimento o finite.
-    *   **Lista Spesa Automatica**: Un click per generare la lista dei farmaci mancanti e inviarla via WhatsApp al partner ("Amore, serve comprare...").
+    *   Calendario mensile con indicatori di aderenza colorati.
 *   **Sospensione Terapia ⏸️**:
-    *   Possibilità di **Archiviare** i farmaci temporaneamente (es. fine ciclo antibiotico o integratore).
-    *   Rimangono salvati nelle impostazioni ma non appaiono nella lista giornaliera.
-*   **Dark Mode Automatica 🌙**:
-    *   Si attiva automaticamente in base alle impostazioni del sistema operativo.
-    *   Colori ottimizzati per l'uso notturno e per ridurre l'affaticamento visivo.
+    *   Possibilità di archiviare i farmaci temporaneamente senza cancellarli.
 *   **UX & Gamification**:
-    *   **Celebrazione Obiettivi**: Banner gratificante con animazione coriandoli (Confetti) al raggiungimento del 100% giornaliero.
-    *   Feedback visivi animati (pop & flash) al completamento.
-    *   Design chiaro con "Accent Bars" colorate per i compiti da svolgere.
-    *   Ordinamento alfabetico o cronologico.
-*   **Gestione Inventario**: 
-    *   Aggiunta, modifica ed eliminazione farmaci con icone personalizzate (Pillole, Gocce, Bustine).
-    *   **Raggruppamento Intelligente 📂**: I farmaci con lo stesso nome (es. presi mattina e sera) vengono raggruppati visivamente nelle Impostazioni per mantenere la lista ordinata e compatta.
+    *   Celebrazione con coriandoli al 100% completamento.
+    *   Feedback visivi (pop/flash) e ordinamento cronologico intelligente (Mattina -> Sera).
 *   **Funzionalità PWA**:
     *   Installabile su Home Screen (iOS/Android).
-    *   Funziona come app nativa (niente barre del browser).
-    *   **App Shortcuts**: Tieni premuta l'icona per saltare direttamente al profilo di Paolo o Barbara.
-*   **Social**: Invio rapido promemoria via WhatsApp.
+    *   Funziona come app nativa.
+    *   Supporto Notifiche Push Locali per avvisi scorte.
 
 ## 🛠️ Stack Tecnologico
 
@@ -50,30 +37,21 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
 *   **Backend/Database**: Supabase
 *   **Hosting**: Google Cloud Run (Container Docker)
 
-## 🚀 Installazione e Sviluppo Locale
-
-1.  **Clona il repository**:
-    ```bash
-    git clone https://github.com/tuo-user/medicoppia.git
-    cd medicoppia
-    ```
-
-2.  **Installa le dipendenze** (se usi un ambiente Node locale):
-    ```bash
-    npm install
-    ```
-
-3.  **Avvia l'app**:
-    ```bash
-    npm start
-    ```
-
 ## 🗄️ Configurazione Database (Supabase)
 
 L'applicazione richiede le seguenti tabelle su Supabase. Esegui questo script nell'SQL Editor della tua dashboard Supabase:
 
 ```sql
--- Tabella Farmaci
+-- 1. Tabella Magazzino (Farmacia Virtuale)
+create table inventory (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  quantity numeric default 0,
+  threshold numeric default 5,
+  created_at timestamptz default now()
+);
+
+-- 2. Tabella Farmaci (Programmazione Assunzioni)
 create table medications (
   id text primary key,
   user_id text not null,
@@ -83,14 +61,15 @@ create table medications (
   frequency text, -- 'daily', 'alternate_days', 'alternate_days_odd'
   notes text,
   icon text,      -- 'pill', 'drop', 'clock', 'sachet'
-  stock_quantity numeric, -- NUOVO: Quantità residua
-  stock_threshold numeric, -- NUOVO: Soglia avviso
-  is_archived boolean default false, -- NUOVO: Stato archiviazione
-  shared_id text, -- NUOVO: ID condivisione scorta
+  stock_quantity numeric, -- (Legacy)
+  stock_threshold numeric, -- (Legacy)
+  is_archived boolean default false,
+  shared_id text, -- (Legacy)
+  product_id uuid references inventory(id), -- Link alla Farmacia Virtuale
   created_at timestamptz default now()
 );
 
--- Tabella Storico (Logs)
+-- 3. Tabella Storico (Logs)
 create table logs (
   id bigint generated by default as identity primary key,
   date text not null, -- Formato YYYY-MM-DD
@@ -102,29 +81,39 @@ create table logs (
 -- Abilita Realtime
 alter publication supabase_realtime add table logs;
 alter publication supabase_realtime add table medications;
+alter publication supabase_realtime add table inventory;
 
 -- Policy di Sicurezza (Semplificata per uso personale)
 alter table medications enable row level security;
 alter table logs enable row level security;
+alter table inventory enable row level security;
 create policy "Accesso Totale" on medications for all using (true);
 create policy "Accesso Totale" on logs for all using (true);
+create policy "Accesso Totale" on inventory for all using (true);
 ```
 
-**⚠️ Aggiornamento Versione 1.17.0**:
-Se hai già il database creato, esegui questi comandi per aggiungere le colonne mancanti:
-```sql
-alter table medications add column shared_id text;
--- Se non hai aggiunto quelle precedenti:
-alter table medications add column is_archived boolean default false;
-alter table medications add column stock_quantity numeric;
-alter table medications add column stock_threshold numeric;
-```
+**⚠️ Aggiornamento Versione 1.22.0**:
+Se provieni da una versione precedente, esegui lo script sopra per creare la tabella `inventory` e aggiungere la colonna `product_id` ai farmaci esistenti.
 
-Le credenziali API sono configurate in `constants.tsx`. **Nota**: In un ambiente di produzione pubblico, utilizzare variabili d'ambiente (`.env`).
+## 🚀 Installazione e Sviluppo Locale
+
+1.  **Clona il repository**:
+    ```bash
+    git clone https://github.com/tuo-user/medicoppia.git
+    cd medicoppia
+    ```
+
+2.  **Installa le dipendenze**:
+    ```bash
+    npm install
+    ```
+
+3.  **Avvia l'app**:
+    ```bash
+    npm start
+    ```
 
 ## 🐳 Deploy con Docker (Cloud Run)
-
-Il progetto include un `Dockerfile` ottimizzato e una configurazione `nginx.conf`.
 
 1.  **Build**:
     ```bash
@@ -135,11 +124,3 @@ Il progetto include un `Dockerfile` ottimizzato e una configurazione `nginx.conf
     ```bash
     docker run -p 8080:8080 medicoppia
     ```
-
-## 📱 Aggiungere alla Home (iOS/Android)
-
-1.  Aprire il link dell'app in Safari (iOS) o Chrome (Android).
-2.  Toccare il pulsante "Condividi" (iOS) o il menu tre puntini (Android).
-3.  Selezionare **"Aggiungi alla schermata Home"**.
-
-L'app apparirà con la sua icona e supporterà le azioni rapide (Long Press).

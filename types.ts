@@ -1,3 +1,4 @@
+
 export enum UserID {
   PAOLO = 'paolo',
   BARBARA = 'barbara'
@@ -9,6 +10,13 @@ export enum Frequency {
   ALTERNATE_DAYS_ODD = 'alternate_days_odd' // Turno B (Giorni Dispari dall'epoca)
 }
 
+export interface InventoryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  threshold: number;
+}
+
 export interface Medication {
   id: string;
   userId: UserID;
@@ -18,13 +26,19 @@ export interface Medication {
   frequency: Frequency;
   notes?: string;
   icon?: 'pill' | 'drop' | 'clock' | 'sachet';
-  // Inventory fields
+  
+  // Inventory fields (Legacy or Derived from Product)
   stockQuantity?: number; // Quantità residua
-  stockThreshold?: number; // Soglia per l'avviso (es. avvisami quando ne restano 5)
+  stockThreshold?: number; // Soglia per l'avviso
+  
   // Status field
   isArchived?: boolean; // Se true, il farmaco è sospeso/in pausa
-  // Shared Inventory
-  sharedId?: string; // ID univoco (es. slug del nome) per collegare farmaci di utenti diversi alla stessa scorta
+  
+  // Shared Inventory (Legacy)
+  sharedId?: string; 
+
+  // Virtual Pharmacy Link (New Architecture)
+  productId?: string; // Link alla tabella Inventory
 }
 
 export interface LogEntry {

@@ -4,6 +4,22 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.22.0] - 2025-12-07
+### Architettura
+- **Farmacia Virtuale (Magazzino) 🏥**: 
+  - Separazione strutturale tra "Programmazione Assunzioni" e "Inventario Fisico".
+  - Introdotta la tabella `inventory` su Supabase.
+  - Più schemi di assunzione (es. Paolo Mattina + Barbara Sera) possono ora attingere dallo stesso prodotto fisico (Prodotto Collegato), garantendo una sincronizzazione perfetta delle scorte senza duplicazioni.
+
+### Funzionalità
+- **Setup Esclusivo per Paolo 🔐**: 
+  - Il tab "Setup" è ora nascosto per il profilo Barbara.
+  - Paolo ha accesso alla gestione centralizzata di tutti i medicinali (sia propri che di Barbara) in un'unica schermata.
+  - Reindirizzamento di sicurezza: se si cambia utente mentre si è nelle impostazioni, l'app torna automaticamente alla home.
+- **Rifornimento Rapido (Smart Refill) ⚡**: 
+  - Aggiunto pulsante `+` nel pannello di modifica scorte.
+  - Permette di aggiungere la quantità di una nuova confezione (es. +60) alla scorta residua senza dover fare calcoli a mente.
+
 ## [1.21.0] - 2025-12-06
 ### Aggiunto
 - **Notifiche Push Locali 🔔**:

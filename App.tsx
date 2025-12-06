@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { format, differenceInDays } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -8,7 +9,7 @@ import { HistoryView } from './components/HistoryView';
 import { EditMedicationModal } from './components/EditMedicationModal';
 import { SettingsView } from './components/SettingsView';
 import { USERS } from './constants';
-import { UserID, Frequency, Medication } from './types';
+import { UserID, Frequency, Medication, InventoryItem } from './types';
 import * as storage from './services/storageService';
 import * as supabaseClient from './services/supabaseClient';
 import { requestNotificationPermission, sendStockNotification } from './services/notificationService';
@@ -66,35 +67,23 @@ const getTimingPriority = (timing: string = '') => {
 const App: React.FC = () => {
   // --- State ---
   
-  // Smart Login Initialization: Check OS/Params immediately to prevent flash
   const [currentUserId, setCurrentUserId] = useState<UserID>(() => {
-    // 1. Check for App Shortcuts (URL Parameters) - Highest Priority
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user');
 
     if (userParam === UserID.PAOLO) return UserID.PAOLO;
     if (userParam === UserID.BARBARA) return UserID.BARBARA;
 
-    // 2. Smart OS Detection
     try {
       const ua = navigator.userAgent.toLowerCase();
       const isAndroid = /android/.test(ua);
-      // iOS detection includes modern iPads which often report as Macintosh
       const isIOS = /iphone|ipad|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-      if (isAndroid) {
-        console.log("OS Detected: Android -> Barbara");
-        return UserID.BARBARA;
-      }
-      if (isIOS) {
-        console.log("OS Detected: iOS -> Paolo");
-        return UserID.PAOLO;
-      }
+      if (isAndroid) return UserID.BARBARA;
+      if (isIOS) return UserID.PAOLO;
     } catch (e) {
       console.warn("Error detecting OS", e);
     }
-
-    // Default Fallback
     return UserID.PAOLO;
   });
 
@@ -104,8 +93,8 @@ const App: React.FC = () => {
   // Data State
   const [logs, setLogs] = useState<Record<string, boolean>>({});
   const [medications, setMedications] = useState<Medication[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  // const [showSplash, setShowSplash] = useState(true);
   
   // Edit Modal State
   const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
@@ -118,17 +107,35 @@ const App: React.FC = () => {
   // --- Initialization & Data Fetching ---
 
   const loadData = async () => {
-    const [fetchedMeds, fetchedLogs] = await Promise.all([
+    const [fetchedMeds, fetchedLogs, fetchedInventory] = await Promise.all([
       storage.fetchMedications(),
-      storage.fetchLogs()
+      storage.fetchLogs(),
+      storage.fetchInventory()
     ]);
-    setMedications(fetchedMeds);
+
+    // HYDRATION: Merge Inventory Data into Medications
+    // This allows UI components to see the "Product" stock as if it was the medication's stock
+    const hydratedMeds = fetchedMeds.map(med => {
+      if (med.productId) {
+        const product = fetchedInventory.find(i => i.id === med.productId);
+        if (product) {
+          return {
+            ...med,
+            stockQuantity: product.quantity,
+            stockThreshold: product.threshold
+          };
+        }
+      }
+      return med;
+    });
+
+    setInventory(fetchedInventory);
+    setMedications(hydratedMeds);
     setLogs(fetchedLogs);
     setIsLoading(false);
   };
 
   useEffect(() => {
-    // Initialize Database
     supabaseClient.initSupabase();
     storage.initializeDefaultDataIfNeeded().then(() => {
       loadData();
@@ -138,19 +145,10 @@ const App: React.FC = () => {
       loadData(); 
     });
 
-    // Request Notification Permission on mount
     requestNotificationPermission();
-
-    // Splash Screen Timer
-    /*
-    const splashTimer = setTimeout(() => {
-      setShowSplash(false);
-    }, 2500);
-    */
 
     return () => {
       if (channel) supabaseClient.getSupabase()?.removeChannel(channel);
-      // clearTimeout(splashTimer);
     };
   }, []);
 
@@ -165,11 +163,9 @@ const App: React.FC = () => {
   const handleToggle = (medId: string) => {
     const key = `${formattedDate}-${medId}`;
     const newStatus = !logs[key];
-    
-    // Find the medication being toggled to check for sharedId and Notification logic
     const targetMed = medications.find(m => m.id === medId);
     
-    // NOTIFICATION LOGIC: Check if stock goes below threshold
+    // NOTIFICATION LOGIC
     if (newStatus && targetMed && targetMed.stockQuantity !== undefined && targetMed.stockThreshold !== undefined) {
       const projectedStock = targetMed.stockQuantity - 1;
       if (projectedStock <= targetMed.stockThreshold) {
@@ -185,56 +181,60 @@ const App: React.FC = () => {
       return next;
     });
 
-    // 2. Update Stock (Locally & DB)
-    setMedications(prev => prev.map(med => {
-      // Determine if this med needs updating
-      // Update if it's the target med OR if it shares the same sharedId
-      const shouldUpdate = med.id === medId || (targetMed?.sharedId && med.sharedId === targetMed.sharedId);
-      
-      if (!shouldUpdate) return med;
+    // 2. Update Stock (Locally)
+    // We need to know if this updates the INVENTORY or just the MEDICATION
+    const change = newStatus ? -1 : 1;
 
-      // If stock tracking is enabled
-      if (med.stockQuantity !== undefined && med.stockQuantity !== null) {
-        // Taking (true) -> -1, Untaking (false) -> +1
-        const change = newStatus ? -1 : 1;
-        return { ...med, stockQuantity: med.stockQuantity + change };
-      }
-      return med;
-    }));
-
-    // 3. Persist
-    storage.toggleLog(formattedDate, medId, newStatus);
-    
-    // Only update DB stock if medication has stock tracking
-    if (targetMed && targetMed.stockQuantity !== undefined) {
-      storage.updateStock(medId, newStatus ? -1 : 1);
-    }
-  };
-
-  const handleSaveMedication = (updatedMed: Medication) => {
-    // Optimistic Update
-    if (isNewMedication) {
-      setMedications(prev => [...prev, updatedMed]);
-    } else {
-      setMedications(prev => prev.map(med => {
-        // Update the target medication
-        if (med.id === updatedMed.id) return updatedMed;
-        
-        // If the updated medication has a shared ID and stock info, sync other meds with same sharedId
-        if (updatedMed.sharedId && med.sharedId === updatedMed.sharedId && updatedMed.stockQuantity !== undefined) {
-           return { ...med, stockQuantity: updatedMed.stockQuantity };
+    if (targetMed?.productId) {
+      // NEW ARCHITECTURE: Update Inventory
+      const linkedProductId = targetMed.productId;
+      setInventory(prevInv => prevInv.map(item => {
+        if (item.id === linkedProductId) {
+          return { ...item, quantity: item.quantity + change };
         }
-        
+        return item;
+      }));
+      
+      // Also update all medications linked to this product in the UI
+      setMedications(prevMeds => prevMeds.map(med => {
+        if (med.productId === linkedProductId && med.stockQuantity !== undefined) {
+           return { ...med, stockQuantity: med.stockQuantity + change };
+        }
+        return med;
+      }));
+
+    } else {
+       // LEGACY ARCHITECTURE: Update Medication directly
+       setMedications(prev => prev.map(med => {
+        const shouldUpdate = med.id === medId || (targetMed?.sharedId && med.sharedId === targetMed.sharedId);
+        if (!shouldUpdate) return med;
+        if (med.stockQuantity !== undefined && med.stockQuantity !== null) {
+          return { ...med, stockQuantity: med.stockQuantity + change };
+        }
         return med;
       }));
     }
-    
-    storage.saveMedication(updatedMed);
+
+    // 3. Persist
+    storage.toggleLog(formattedDate, medId, newStatus);
+    storage.updateStock(medId, change);
+  };
+
+  const handleSaveMedication = async (updatedMed: Medication) => {
+    await storage.saveMedication(updatedMed);
+    // Refresh data to ensure all links are correct (lazy way, safer)
+    loadData();
     setIsNewMedication(false);
   };
 
+  const handleSaveInventory = async (item: InventoryItem) => {
+    const id = await storage.saveInventoryItem(item);
+    // Reload to get new data
+    loadData();
+    return id;
+  };
+
   const handleDeleteMedication = (medId: string) => {
-    // Optimistic Update
     setMedications(prev => prev.filter(m => m.id !== medId));
     storage.deleteMedication(medId);
     setEditingMedication(null);
@@ -252,7 +252,8 @@ const App: React.FC = () => {
       icon: 'pill',
       stockThreshold: 5,
       isArchived: false,
-      sharedId: undefined
+      sharedId: undefined,
+      productId: undefined
     });
   };
 
@@ -271,26 +272,20 @@ const App: React.FC = () => {
   };
 
   const getDailyMedications = useMemo(() => {
-    // IMPORTANT: Filter out archived medications
     const userMeds = medications.filter(m => m.userId === currentUserId && !m.isArchived);
-    
-    // Logic for alternate days (Turno A vs Turno B)
-    // Epoch: Jan 1 2024. Even days vs Odd days.
     const daysSinceEpoch = differenceInDays(today, new Date(2024, 0, 1));
     const isEvenDay = daysSinceEpoch % 2 === 0;
 
     return userMeds.filter(med => {
       if (med.frequency === Frequency.DAILY) return true;
-      if (med.frequency === Frequency.ALTERNATE_DAYS) return isEvenDay; // Show only on even days
-      if (med.frequency === Frequency.ALTERNATE_DAYS_ODD) return !isEvenDay; // Show only on odd days
+      if (med.frequency === Frequency.ALTERNATE_DAYS) return isEvenDay; 
+      if (med.frequency === Frequency.ALTERNATE_DAYS_ODD) return !isEvenDay;
       return true;
     })
     .sort((a, b) => {
-      // Sort by timing priority first
       const pA = getTimingPriority(a.timing);
       const pB = getTimingPriority(b.timing);
       if (pA !== pB) return pA - pB;
-      // Then alphabetically by name
       return a.name.localeCompare(b.name);
     })
     .map(med => ({ ...med, disabled: false }));
@@ -307,27 +302,11 @@ const App: React.FC = () => {
       });
   }, [currentUserId, medications]);
 
-  const activeMeds = getDailyMedications; // All meds in this list are active today
+  const activeMeds = getDailyMedications; 
   const takenCount = activeMeds.filter(m => logs[`${formattedDate}-${m.id}`]).length;
   const progress = activeMeds.length > 0 ? (takenCount / activeMeds.length) * 100 : 0;
   const isComplete = progress === 100 && takenCount > 0 && activeMeds.length > 0;
 
-  // --- Render Splash Screen (PAOLO ONLY) ---
-  /*
-  if (showSplash && currentUserId === UserID.PAOLO) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center animate-out fade-out duration-700">
-        <img
-          src={PAOLO_SPLASH_IMAGE}
-          alt="Benvenuto Paolo"
-          className="w-full h-full object-cover"
-        />
-      </div>
-    );
-  }
-  */
-
-  // --- Render Loader ---
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -344,14 +323,13 @@ const App: React.FC = () => {
       <Header 
         currentUser={currentUser} 
         onSwitchUser={setCurrentUserId}
-        availableUsers={[USERS[UserID.BARBARA], USERS[UserID.PAOLO]]} // Ordine corretto: Barbara (SX), Paolo (DX)
+        availableUsers={[USERS[UserID.BARBARA], USERS[UserID.PAOLO]]} 
         dateDisplay={displayDate}
       />
 
       <div className="flex-1 overflow-y-auto no-scrollbar">
         {activeTab === 'today' && (
           <>
-            {/* Progress Bar or Completion Banner */}
             <div className="-mt-1 px-6 relative z-20 mb-6">
               {isComplete ? (
                 <div className="relative overflow-hidden bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400 text-white rounded-2xl p-6 shadow-xl shadow-orange-200 animate-pop transform transition-all ring-4 ring-white dark:ring-gray-700">
@@ -434,6 +412,7 @@ const App: React.FC = () => {
         {activeTab === 'settings' && (
           <SettingsView
              medications={medications}
+             inventory={inventory}
              currentUserId={currentUserId}
              onEdit={handleEditClick}
              onAdd={handleAddMedication}
@@ -441,20 +420,20 @@ const App: React.FC = () => {
         )}
       </div>
 
-      {/* Edit/Add Modal */}
       {editingMedication && (
         <EditMedicationModal
           medication={editingMedication}
+          inventory={inventory}
           isOpen={!!editingMedication}
           onClose={() => setEditingMedication(null)}
           onSave={handleSaveMedication}
+          onSaveInventory={handleSaveInventory}
           onDelete={!isNewMedication ? handleDeleteMedication : undefined}
           userTheme={currentUser}
           isNew={isNewMedication}
         />
       )}
 
-      {/* Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 pb-safe pt-2 px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-40 transition-colors duration-300">
         <div className="flex justify-around items-center h-16 max-w-md mx-auto">
           <button 
@@ -473,7 +452,6 @@ const App: React.FC = () => {
             <span className="text-[10px] font-bold tracking-wide">STORICO</span>
           </button>
 
-          {/* Show Settings Tab ONLY for Paolo */}
           {currentUserId === UserID.PAOLO && (
             <button 
               onClick={() => setActiveTab('settings')}

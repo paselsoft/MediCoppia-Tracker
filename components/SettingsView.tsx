@@ -1,21 +1,43 @@
+
 import React, { useState, useEffect } from 'react';
-import { Medication, UserID, UserProfile, Frequency } from '../types';
+import { Medication, UserID, InventoryItem, Frequency } from '../types';
 import { USERS } from '../constants';
-import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Terminal, Copy, Check, ShoppingCart, Archive, PlayCircle, ChevronDown, ChevronRight, Layers } from 'lucide-react';
+import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Copy, Check, ShoppingCart, Archive, PlayCircle, Layers } from 'lucide-react';
 import { checkStockColumnsExist } from '../services/storageService';
 import { ShoppingListModal } from './ShoppingListModal';
 
 interface SettingsViewProps {
   medications: Medication[];
+  inventory?: InventoryItem[]; // Not strictly used for display here yet, but passed
   currentUserId: UserID;
   onEdit: (med: Medication) => void;
   onAdd: (userId: UserID) => void;
 }
 
-const REQUIRED_SQL = `alter table medications add column if not exists stock_quantity numeric;
+const REQUIRED_SQL = `
+-- Create Inventory Table
+create table if not exists inventory (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  quantity numeric default 0,
+  threshold numeric default 5,
+  created_at timestamptz default now()
+);
+
+-- Enable Realtime for Inventory
+alter publication supabase_realtime add table inventory;
+alter table inventory enable row level security;
+create policy "Accesso Totale" on inventory for all using (true);
+
+-- Link Medications to Inventory
+alter table medications add column if not exists product_id uuid references inventory(id);
+
+-- Legacy Columns (optional if starting fresh)
+alter table medications add column if not exists stock_quantity numeric;
 alter table medications add column if not exists stock_threshold numeric;
 alter table medications add column if not exists is_archived boolean default false;
-alter table medications add column if not exists shared_id text;`;
+alter table medications add column if not exists shared_id text;
+`;
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   medications,
@@ -28,7 +50,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [sqlCopied, setSqlCopied] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
   
-  // LOGIC CHANGE: If user is Paolo, show ALL users. If user is Barbara, show only Barbara.
   const userList = currentUserId === UserID.PAOLO 
     ? [USERS[UserID.PAOLO], USERS[UserID.BARBARA]] 
     : [USERS[currentUserId]];
@@ -56,8 +77,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  // Calculate items to buy (Keeping this global for the household shopping list, 
-  // or filtered if preferred. For now, keeping global helps whoever goes to pharmacy)
   const lowStockCount = medications.filter(med => 
     !med.isArchived &&
     med.stockQuantity !== undefined && 
@@ -122,11 +141,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="flex-1">
                 <h3 className="font-bold text-red-700 dark:text-red-300 text-sm">Aggiornamento Database Richiesto</h3>
                 <p className="text-xs text-red-600 dark:text-red-400 mt-1 leading-relaxed">
-                  Per utilizzare le nuove funzionalità (scorte, archiviazione), il database necessita di nuove colonne. Esegui questo SQL nella Dashboard Supabase:
+                  Per attivare la "Farmacia Virtuale" (Magazzino), esegui questo SQL su Supabase:
                 </p>
                 
                 <div className="mt-3 bg-gray-900 rounded-lg p-3 relative group">
-                  <pre className="text-[10px] text-green-400 font-mono whitespace-pre-wrap overflow-x-auto">
+                  <pre className="text-[10px] text-green-400 font-mono whitespace-pre-wrap overflow-x-auto max-h-32">
                     {REQUIRED_SQL}
                   </pre>
                   <button 
@@ -148,11 +167,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             userMeds = [...userMeds].sort((a, b) => a.name.localeCompare(b.name));
           }
 
-          // Split into active and archived
           const activeMeds = userMeds.filter(m => !m.isArchived);
           const archivedMeds = userMeds.filter(m => m.isArchived);
 
-          // Group active meds by name (normalized)
           const groupedMeds = activeMeds.reduce((acc, med) => {
             const key = med.name.trim().toLowerCase();
             if (!acc[key]) acc[key] = [];
@@ -160,12 +177,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             return acc;
           }, {} as Record<string, Medication[]>);
 
-          // Get keys for rendering.
           let groupKeys = Object.keys(groupedMeds);
           if (sortAlphabetical) {
             groupKeys.sort();
           } else {
-             // Try to preserve relative order based on the first appearance in the original activeMeds list
              const originalOrderMap = new Map();
              activeMeds.forEach((m, index) => {
                 const key = m.name.trim().toLowerCase();
@@ -195,10 +210,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <div className="divide-y divide-gray-50 dark:divide-gray-700">
                     {groupKeys.map(key => {
                        const group = groupedMeds[key];
-                       const primary = group[0]; // Use first item for Name/Icon
+                       const primary = group[0];
                        const isGrouped = group.length > 1;
 
-                       // If single item, render standard row
                        if (!isGrouped) {
                          const med = primary;
                          const hasStock = med.stockQuantity !== undefined && med.stockQuantity !== null;
@@ -240,14 +254,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         );
                        } else {
                          // RENDER GROUPED CARD
-                         const sharedId = primary.sharedId;
-                         const allShareId = sharedId && group.every(m => m.sharedId === sharedId);
+                         // Check if ALL items in group point to the same product ID
+                         const commonProductId = primary.productId;
+                         const allShareProduct = commonProductId && group.every(m => m.productId === commonProductId);
                          const hasStock = primary.stockQuantity !== undefined && primary.stockQuantity !== null;
                          const isLowStock = hasStock && (primary.stockQuantity || 0) <= (primary.stockThreshold || 5);
 
                          return (
                            <div key={`group-${key}`} className="bg-white dark:bg-gray-800 transition-colors">
-                              {/* Group Header */}
                               <div className="p-4 pb-2 flex items-center justify-between border-b border-dashed border-gray-100 dark:border-gray-700/50">
                                 <div className="flex items-center gap-3">
                                   <div className={`p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-300`}>
@@ -261,15 +275,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                     </div>
                                   </div>
                                 </div>
-                                {allShareId && hasStock && (
+                                {allShareProduct && hasStock && (
                                    <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${isLowStock ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
                                       <Package className="w-3 h-3" />
                                       {primary.stockQuantity}
                                    </div>
                                 )}
                               </div>
-
-                              {/* Group Children */}
                               <div className="bg-gray-50/50 dark:bg-black/10">
                                 {group.map((med, idx) => (
                                   <div 
@@ -281,7 +293,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                     `}
                                   >
                                      <div className="flex flex-col pl-11 relative">
-                                        {/* Connector Line visual trick */}
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-px bg-gray-200 dark:bg-gray-600"></div>
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-500"></div>
 
@@ -297,8 +308,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                      </div>
 
                                      <div className="flex items-center gap-3">
-                                        {/* If not shared stock, show individual stock here */}
-                                        {!allShareId && med.stockQuantity !== undefined && (
+                                        {!allShareProduct && med.stockQuantity !== undefined && (
                                           <div className="flex items-center gap-1 text-[10px] text-gray-400">
                                              <Package className="w-3 h-3" /> {med.stockQuantity}
                                           </div>
@@ -322,7 +332,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 )}
               </div>
 
-              {/* Archived Meds List */}
+              {/* Archived Meds */}
               {archivedMeds.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-2 px-1 flex items-center gap-1.5">
@@ -367,8 +377,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
            </div>
         </div>
       </div>
-
-      {/* Shopping List Modal */}
       <ShoppingListModal 
         medications={medications}
         isOpen={showShoppingList}
