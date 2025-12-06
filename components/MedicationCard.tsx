@@ -40,7 +40,7 @@ export const MedicationCard: React.FC<MedicationCardProps> = ({
     switch(medication.icon) {
       case 'drop': return <Droplets className="w-5 h-5" />;
       case 'clock': return <Clock className="w-5 h-5" />;
-      case 'sachet': return <Mail className="w-5 h-5" />;
+      case 'sachet': return <Mail className="w-5 h-5" />; // Icona Bustina
       default: return <Pill className="w-5 h-5" />;
     }
   };
