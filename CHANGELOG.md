@@ -4,6 +4,11 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.20.0] - 2025-12-06
+### Migliorato
+- **Ordinamento Cronologico Intelligente**: La lista dei medicinali "Oggi" e dello "Storico" ora viene ordinata automaticamente in base al momento dell'assunzione durante la giornata, migliorando la leggibilità del piano terapeutico.
+  - Priorità: Colazione → Mattina → Pomeriggio → Lontano dai pasti → Entro le 17:00 → Sera.
+
 ## [1.19.1] - 2025-12-06
 ### Corretto
 - **Sovrapposizione Header**: Risolto un problema grafico (z-index) per cui la lista dei medicinali scorreva sopra il banner dell'intestazione. Ora l'intestazione e i selettori utente rimangono correttamente sempre in primo piano durante lo scorrimento.

@@ -45,6 +45,20 @@ const Confetti = () => {
   );
 };
 
+// Helper sorting function for timing priority
+const getTimingPriority = (timing: string = '') => {
+  const t = timing.toLowerCase();
+  if (t.includes('colazione')) return 1;
+  if (t.includes('mattina')) return 2;
+  if (t.includes('pranzo')) return 3;
+  if (t.includes('pomeriggio')) return 4;
+  if (t.includes('lontano')) return 5;
+  if (t.includes('17:00')) return 6;
+  if (t.includes('cena') || t.includes('sera')) return 7;
+  if (t.includes('notte') || t.includes('dormire')) return 8;
+  return 99;
+};
+
 const App: React.FC = () => {
   // --- State ---
   
@@ -239,7 +253,16 @@ const App: React.FC = () => {
       if (med.frequency === Frequency.ALTERNATE_DAYS) return isEvenDay; // Show only on even days
       if (med.frequency === Frequency.ALTERNATE_DAYS_ODD) return !isEvenDay; // Show only on odd days
       return true;
-    }).map(med => ({ ...med, disabled: false }));
+    })
+    .sort((a, b) => {
+      // Sort by timing priority first
+      const pA = getTimingPriority(a.timing);
+      const pB = getTimingPriority(b.timing);
+      if (pA !== pB) return pA - pB;
+      // Then alphabetically by name
+      return a.name.localeCompare(b.name);
+    })
+    .map(med => ({ ...med, disabled: false }));
   }, [currentUserId, today, medications]);
 
   const allUserMedications = useMemo(() => {
@@ -248,7 +271,14 @@ const App: React.FC = () => {
     // But since our history logic is simple (showing list of all meds), let's pass all meds
     // so the history grid isn't empty for old dates.
     // However, we might want to visually distinguish them in HistoryView.
-    return medications.filter(m => m.userId === currentUserId);
+    return medications
+      .filter(m => m.userId === currentUserId)
+      .sort((a, b) => {
+        const pA = getTimingPriority(a.timing);
+        const pB = getTimingPriority(b.timing);
+        if (pA !== pB) return pA - pB;
+        return a.name.localeCompare(b.name);
+      });
   }, [currentUserId, medications]);
 
   const activeMeds = getDailyMedications; // All meds in this list are active today
