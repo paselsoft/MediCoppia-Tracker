@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
   dateDisplay
 }) => {
   return (
-    <div className={`${currentUser.themeColor} text-white pt-12 pb-8 px-6 rounded-b-[2rem] shadow-lg sticky top-0 z-10 transition-colors duration-500`}>
+    <div className={`${currentUser.themeColor} text-white pt-12 pb-8 px-6 rounded-b-[2rem] shadow-lg sticky top-0 z-40 transition-colors duration-500`}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-blue-100 text-sm font-medium uppercase tracking-wider opacity-80">
