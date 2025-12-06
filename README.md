@@ -5,6 +5,9 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
 ## ✨ Funzionalità Principali
 
 *   **Multi-Utente**: Profili distinti per Paolo e Barbara con temi visivi dedicati (Blu e Rosa).
+*   **Smart Login 🧠**: Rileva automaticamente il sistema operativo per selezionare l'utente:
+    *   **Android** → Barbara
+    *   **iOS (iPhone/iPad)** → Paolo
 *   **Sincronizzazione Cloud**: Database Supabase per dati in tempo reale su tutti i dispositivi.
 *   **Gestione Turni Avanzata**:
     *   Supporto per frequenza giornaliera.

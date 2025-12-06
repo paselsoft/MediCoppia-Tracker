@@ -4,6 +4,14 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] - 2025-12-05
+### Aggiunto
+- **Smart Login (Rilevamento OS)**:
+  - L'app ora riconosce automaticamente il dispositivo utilizzato.
+  - Se rileva **Android**, seleziona automaticamente il profilo di **Barbara**.
+  - Se rileva **iOS (iPhone/iPad)**, seleziona automaticamente il profilo di **Paolo**.
+  - Le scorciatoie dell'app (Home Screen Shortcuts) hanno ancora la priorità su questo automatismo.
+
 ## [1.18.0] - 2025-12-05
 ### Migliorato
 - **Organizzazione Impostazioni 📂**:

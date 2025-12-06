@@ -77,12 +77,36 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    // Handle App Shortcuts (URL Parameters)
+    // 1. Check for App Shortcuts (URL Parameters) - Highest Priority
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user');
-    if (userParam === UserID.PAOLO) setCurrentUserId(UserID.PAOLO);
-    if (userParam === UserID.BARBARA) setCurrentUserId(UserID.BARBARA);
 
+    if (userParam === UserID.PAOLO) {
+      setCurrentUserId(UserID.PAOLO);
+    } else if (userParam === UserID.BARBARA) {
+      setCurrentUserId(UserID.BARBARA);
+    } else {
+      // 2. If no URL param, perform Smart OS Detection
+      // Logic: Barbara uses Android, Paolo uses iOS (iPhone/iPad)
+      try {
+        const ua = navigator.userAgent.toLowerCase();
+        const isAndroid = /android/.test(ua);
+        // iOS detection includes modern iPads which often report as Macintosh
+        const isIOS = /iphone|ipad|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (isAndroid) {
+          console.log("OS Detected: Android -> Switching to Barbara");
+          setCurrentUserId(UserID.BARBARA);
+        } else if (isIOS) {
+          console.log("OS Detected: iOS -> Switching to Paolo");
+          setCurrentUserId(UserID.PAOLO);
+        }
+      } catch (e) {
+        console.warn("Error detecting OS", e);
+      }
+    }
+
+    // 3. Initialize Database
     supabaseClient.initSupabase();
     storage.initializeDefaultDataIfNeeded().then(() => {
       loadData();
