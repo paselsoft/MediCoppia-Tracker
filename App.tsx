@@ -154,6 +154,13 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // --- Security: Redirect if user changes to Barbara while in Settings ---
+  useEffect(() => {
+    if (activeTab === 'settings' && currentUserId !== UserID.PAOLO) {
+      setActiveTab('today');
+    }
+  }, [currentUserId, activeTab]);
+
   // --- Logic ---
   const handleToggle = (medId: string) => {
     const key = `${formattedDate}-${medId}`;
@@ -466,13 +473,16 @@ const App: React.FC = () => {
             <span className="text-[10px] font-bold tracking-wide">STORICO</span>
           </button>
 
-          <button 
-            onClick={() => setActiveTab('settings')}
-            className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${activeTab === 'settings' ? currentUser.themeColor.replace('bg-', 'text-') : 'text-gray-400 dark:text-gray-500'}`}
-          >
-            <Settings className={`w-6 h-6 ${activeTab === 'settings' ? 'fill-current opacity-20' : ''}`} strokeWidth={2.5} />
-            <span className="text-[10px] font-bold tracking-wide">SETUP</span>
-          </button>
+          {/* Show Settings Tab ONLY for Paolo */}
+          {currentUserId === UserID.PAOLO && (
+            <button 
+              onClick={() => setActiveTab('settings')}
+              className={`flex flex-col items-center justify-center w-16 gap-1 transition-colors ${activeTab === 'settings' ? currentUser.themeColor.replace('bg-', 'text-') : 'text-gray-400 dark:text-gray-500'}`}
+            >
+              <Settings className={`w-6 h-6 ${activeTab === 'settings' ? 'fill-current opacity-20' : ''}`} strokeWidth={2.5} />
+              <span className="text-[10px] font-bold tracking-wide">SETUP</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

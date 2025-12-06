@@ -28,8 +28,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [sqlCopied, setSqlCopied] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
   
-  // Show only the current user in Settings
-  const userList = [USERS[currentUserId]];
+  // LOGIC CHANGE: If user is Paolo, show ALL users. If user is Barbara, show only Barbara.
+  const userList = currentUserId === UserID.PAOLO 
+    ? [USERS[UserID.PAOLO], USERS[UserID.BARBARA]] 
+    : [USERS[currentUserId]];
 
   useEffect(() => {
     const checkDB = async () => {
@@ -74,7 +76,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Impostazioni</h1>
           </div>
           <p className="text-gray-500 dark:text-gray-400 text-sm pl-1">
-            Gestisci i medicinali di {USERS[currentUserId].name}.
+            Gestisci i medicinali {currentUserId === UserID.PAOLO ? 'di casa' : `di ${USERS[currentUserId].name}`}.
           </p>
         </div>
 
@@ -158,10 +160,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             return acc;
           }, {} as Record<string, Medication[]>);
 
-          // Get keys for rendering. If not alphabetized, we ideally want to preserve some order, 
-          // but Object.keys order isn't guaranteed. If sorting is off, we might want to respect creation time 
-          // of the *first* item in the group, but simple key iteration is usually fine for "grouped view".
-          // If sortAlphabetical is on, keys should be sorted.
+          // Get keys for rendering.
           let groupKeys = Object.keys(groupedMeds);
           if (sortAlphabetical) {
             groupKeys.sort();
@@ -241,15 +240,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         );
                        } else {
                          // RENDER GROUPED CARD
-                         // Check if stock is shared (all have same sharedId) or we pick the first
                          const sharedId = primary.sharedId;
                          const allShareId = sharedId && group.every(m => m.sharedId === sharedId);
                          const hasStock = primary.stockQuantity !== undefined && primary.stockQuantity !== null;
-                         // If they share stock, show stock on the group header. 
-                         // If they don't share stock but have same name, we can't easily sum them in a meaningful way for "Stock", 
-                         // so we might show it on individual lines or just hide it on header. 
-                         // For simplicity, if they have sharedId, show on Header.
-                         
                          const isLowStock = hasStock && (primary.stockQuantity || 0) <= (primary.stockThreshold || 5);
 
                          return (

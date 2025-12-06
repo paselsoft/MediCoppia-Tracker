@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Medication, UserProfile, Frequency } from '../types';
-import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail, Package, AlertTriangle, PauseCircle, PlayCircle, Users } from 'lucide-react';
+import { X, Save, Clock, Pill, FileText, Trash2, Droplets, Calendar, Type, Mail, Package, AlertTriangle, PauseCircle, PlayCircle, Users, PlusCircle, CheckCircle2 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 
 interface EditMedicationModalProps {
@@ -37,6 +37,10 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
 
   const [enableStock, setEnableStock] = useState(false);
   const [isShared, setIsShared] = useState(false);
+  
+  // State for Quick Refill
+  const [isRefillMode, setIsRefillMode] = useState(false);
+  const [refillAmount, setRefillAmount] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -54,6 +58,8 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
       });
       setEnableStock(medication.stockQuantity !== undefined && medication.stockQuantity !== null);
       setIsShared(!!medication.sharedId);
+      setIsRefillMode(false);
+      setRefillAmount('');
     }
   }, [medication, isOpen]);
 
@@ -89,6 +95,16 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
       sharedId: finalSharedId
     });
     onClose();
+  };
+
+  const handleRefillSubmit = () => {
+    const amountToAdd = parseInt(refillAmount);
+    if (!isNaN(amountToAdd) && amountToAdd > 0) {
+      const currentStock = formData.stockQuantity || 0;
+      setFormData({ ...formData, stockQuantity: currentStock + amountToAdd });
+      setIsRefillMode(false);
+      setRefillAmount('');
+    }
   };
 
   const handleDelete = () => {
@@ -240,16 +256,27 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
              {enableStock && (
                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
                  <div className="grid grid-cols-2 gap-4">
+                    {/* Stock Quantity + Refill Button */}
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 block">Q.tà Attuale</span>
-                      <input
-                        type="number"
-                        value={formData.stockQuantity === undefined ? '' : formData.stockQuantity}
-                        onChange={(e) => setFormData({...formData, stockQuantity: e.target.value === '' ? undefined : parseInt(e.target.value)})}
-                        className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        placeholder="0"
-                      />
+                      <div className="relative flex items-center">
+                        <input
+                          type="number"
+                          value={formData.stockQuantity === undefined ? '' : formData.stockQuantity}
+                          onChange={(e) => setFormData({...formData, stockQuantity: e.target.value === '' ? undefined : parseInt(e.target.value)})}
+                          className="w-full px-3 py-2 rounded-lg border border-orange-200 dark:border-orange-800 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          placeholder="0"
+                        />
+                         <button 
+                           type="button"
+                           onClick={() => setIsRefillMode(!isRefillMode)}
+                           className="absolute right-1 p-1 text-orange-500 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-200 transition-colors"
+                         >
+                           <PlusCircle className="w-5 h-5" />
+                         </button>
+                      </div>
                     </div>
+
                     <div className="space-y-1">
                       <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 block">Avviso sotto</span>
                       <input
@@ -261,6 +288,37 @@ export const EditMedicationModal: React.FC<EditMedicationModalProps> = ({
                       />
                     </div>
                  </div>
+
+                 {/* QUICK REFILL PANEL */}
+                 {isRefillMode && (
+                   <div className="bg-white dark:bg-gray-800/80 p-3 rounded-lg border border-orange-200 dark:border-orange-800 animate-in slide-in-from-top-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-orange-800 dark:text-orange-200">Rifornimento Rapido</span>
+                        <button onClick={() => setIsRefillMode(false)}><X className="w-3 h-3 text-gray-400" /></button>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          value={refillAmount}
+                          onChange={(e) => setRefillAmount(e.target.value)}
+                          placeholder="Q.tà confezione"
+                          className="flex-1 px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRefillSubmit}
+                          disabled={!refillAmount}
+                          className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 disabled:opacity-50 transition-colors"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5" /> Aggiungi
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-1.5 leading-tight">
+                         La quantità inserita verrà sommata alla scorta attuale ({formData.stockQuantity || 0}).
+                      </p>
+                   </div>
+                 )}
 
                  {/* Shared Stock Toggle */}
                  <div className="pt-2 border-t border-orange-100 dark:border-orange-900/30">
