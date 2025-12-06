@@ -12,6 +12,9 @@ import { UserID, Frequency, Medication } from './types';
 import * as storage from './services/storageService';
 import * as supabaseClient from './services/supabaseClient';
 
+// --- Constants ---
+// const PAOLO_SPLASH_IMAGE = "https://raw.githubusercontent.com/paselsoft/MediCoppia-Tracker/af93b24a68e30fdee84957e1568650040d12a76a/4DE7537D-561D-4D70-9C20-742205A7E145.png";
+
 // --- Confetti Component ---
 const Confetti = () => {
   const pieces = useMemo(() => {
@@ -101,6 +104,7 @@ const App: React.FC = () => {
   const [logs, setLogs] = useState<Record<string, boolean>>({});
   const [medications, setMedications] = useState<Medication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // const [showSplash, setShowSplash] = useState(true);
   
   // Edit Modal State
   const [editingMedication, setEditingMedication] = useState<Medication | null>(null);
@@ -133,8 +137,16 @@ const App: React.FC = () => {
       loadData(); 
     });
 
+    // Splash Screen Timer
+    /*
+    const splashTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+    */
+
     return () => {
       if (channel) supabaseClient.getSupabase()?.removeChannel(channel);
+      // clearTimeout(splashTimer);
     };
   }, []);
 
@@ -266,11 +278,6 @@ const App: React.FC = () => {
   }, [currentUserId, today, medications]);
 
   const allUserMedications = useMemo(() => {
-    // For history, we might want to see everything? 
-    // Usually history should show what was active AT THAT TIME. 
-    // But since our history logic is simple (showing list of all meds), let's pass all meds
-    // so the history grid isn't empty for old dates.
-    // However, we might want to visually distinguish them in HistoryView.
     return medications
       .filter(m => m.userId === currentUserId)
       .sort((a, b) => {
@@ -286,6 +293,22 @@ const App: React.FC = () => {
   const progress = activeMeds.length > 0 ? (takenCount / activeMeds.length) * 100 : 0;
   const isComplete = progress === 100 && takenCount > 0 && activeMeds.length > 0;
 
+  // --- Render Splash Screen (PAOLO ONLY) ---
+  /*
+  if (showSplash && currentUserId === UserID.PAOLO) {
+    return (
+      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center animate-out fade-out duration-700">
+        <img
+          src={PAOLO_SPLASH_IMAGE}
+          alt="Benvenuto Paolo"
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  }
+  */
+
+  // --- Render Loader ---
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
