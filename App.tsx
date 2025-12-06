@@ -11,6 +11,7 @@ import { USERS } from './constants';
 import { UserID, Frequency, Medication } from './types';
 import * as storage from './services/storageService';
 import * as supabaseClient from './services/supabaseClient';
+import { requestNotificationPermission, sendStockNotification } from './services/notificationService';
 
 // --- Constants ---
 // const PAOLO_SPLASH_IMAGE = "https://raw.githubusercontent.com/paselsoft/MediCoppia-Tracker/af93b24a68e30fdee84957e1568650040d12a76a/4DE7537D-561D-4D70-9C20-742205A7E145.png";
@@ -137,6 +138,9 @@ const App: React.FC = () => {
       loadData(); 
     });
 
+    // Request Notification Permission on mount
+    requestNotificationPermission();
+
     // Splash Screen Timer
     /*
     const splashTimer = setTimeout(() => {
@@ -155,9 +159,17 @@ const App: React.FC = () => {
     const key = `${formattedDate}-${medId}`;
     const newStatus = !logs[key];
     
-    // Find the medication being toggled to check for sharedId
+    // Find the medication being toggled to check for sharedId and Notification logic
     const targetMed = medications.find(m => m.id === medId);
     
+    // NOTIFICATION LOGIC: Check if stock goes below threshold
+    if (newStatus && targetMed && targetMed.stockQuantity !== undefined && targetMed.stockThreshold !== undefined) {
+      const projectedStock = targetMed.stockQuantity - 1;
+      if (projectedStock <= targetMed.stockThreshold) {
+        sendStockNotification(targetMed.name, projectedStock);
+      }
+    }
+
     // 1. Update Logs State
     setLogs(prev => {
       const next = { ...prev };

@@ -4,6 +4,13 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.21.0] - 2025-12-06
+### Aggiunto
+- **Notifiche Push Locali 🔔**:
+  - Implementato sistema di notifica nativo del browser (Desktop/Mobile).
+  - L'utente riceve un avviso immediato se, assumendo un farmaco, la scorta scende sotto la soglia impostata (stockThreshold).
+  - Richiesta permessi automatica all'avvio dell'applicazione.
+
 ## [1.20.0] - 2025-12-06
 ### Migliorato
 - **Ordinamento Cronologico Intelligente**: La lista dei medicinali "Oggi" e dello "Storico" ora viene ordinata automaticamente in base al momento dell'assunzione durante la giornata, migliorando la leggibilità del piano terapeutico.
