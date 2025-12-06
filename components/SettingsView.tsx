@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Medication, UserID, UserProfile, Frequency } from '../types';
 import { USERS } from '../constants';
-import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Terminal, Copy, Check, ShoppingCart, Archive, PlayCircle } from 'lucide-react';
+import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Terminal, Copy, Check, ShoppingCart, Archive, PlayCircle, ChevronDown, ChevronRight, Layers } from 'lucide-react';
 import { checkStockColumnsExist } from '../services/storageService';
 import { ShoppingListModal } from './ShoppingListModal';
 
@@ -149,6 +149,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           // Split into active and archived
           const activeMeds = userMeds.filter(m => !m.isArchived);
           const archivedMeds = userMeds.filter(m => m.isArchived);
+
+          // Group active meds by name (normalized)
+          const groupedMeds = activeMeds.reduce((acc, med) => {
+            const key = med.name.trim().toLowerCase();
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(med);
+            return acc;
+          }, {} as Record<string, Medication[]>);
+
+          // Get keys for rendering. If not alphabetized, we ideally want to preserve some order, 
+          // but Object.keys order isn't guaranteed. If sorting is off, we might want to respect creation time 
+          // of the *first* item in the group, but simple key iteration is usually fine for "grouped view".
+          // If sortAlphabetical is on, keys should be sorted.
+          let groupKeys = Object.keys(groupedMeds);
+          if (sortAlphabetical) {
+            groupKeys.sort();
+          } else {
+             // Try to preserve relative order based on the first appearance in the original activeMeds list
+             const originalOrderMap = new Map();
+             activeMeds.forEach((m, index) => {
+                const key = m.name.trim().toLowerCase();
+                if (!originalOrderMap.has(key)) originalOrderMap.set(key, index);
+             });
+             groupKeys.sort((a, b) => originalOrderMap.get(a) - originalOrderMap.get(b));
+          }
           
           return (
             <div key={user.id} className="px-6 animate-in fade-in">
@@ -167,46 +192,134 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
               {/* Active Meds List */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden transition-colors mb-4">
-                {activeMeds.length > 0 ? (
+                {groupKeys.length > 0 ? (
                   <div className="divide-y divide-gray-50 dark:divide-gray-700">
-                    {activeMeds.map(med => {
-                       const hasStock = med.stockQuantity !== undefined && med.stockQuantity !== null;
-                       const isLowStock = hasStock && (med.stockQuantity || 0) <= (med.stockThreshold || 5);
-                       
-                       return (
-                        <div 
-                          key={med.id} 
-                          onClick={() => onEdit(med)}
-                          className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 transition-colors cursor-pointer"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-300`}>
-                              {getIcon(med.icon)}
+                    {groupKeys.map(key => {
+                       const group = groupedMeds[key];
+                       const primary = group[0]; // Use first item for Name/Icon
+                       const isGrouped = group.length > 1;
+
+                       // If single item, render standard row
+                       if (!isGrouped) {
+                         const med = primary;
+                         const hasStock = med.stockQuantity !== undefined && med.stockQuantity !== null;
+                         const isLowStock = hasStock && (med.stockQuantity || 0) <= (med.stockThreshold || 5);
+                         
+                         return (
+                          <div 
+                            key={med.id} 
+                            onClick={() => onEdit(med)}
+                            className="p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 transition-colors cursor-pointer"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-300`}>
+                                {getIcon(med.icon)}
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{med.name}</h3>
+                                <div className="flex gap-2 text-xs text-gray-400 dark:text-gray-500 items-center mt-0.5">
+                                  <span>{med.dosage} • {med.timing}</span>
+                                  {med.frequency !== Frequency.DAILY && (
+                                    <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-1.5 rounded flex items-center gap-0.5">
+                                      <Repeat className="w-3 h-3" /> {med.frequency === Frequency.ALTERNATE_DAYS ? 'Turno A' : 'Turno B'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{med.name}</h3>
-                              <div className="flex gap-2 text-xs text-gray-400 dark:text-gray-500 items-center mt-0.5">
-                                <span>{med.dosage} • {med.timing}</span>
-                                {med.frequency !== Frequency.DAILY && (
-                                  <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-1.5 rounded flex items-center gap-0.5">
-                                    <Repeat className="w-3 h-3" /> {med.frequency === Frequency.ALTERNATE_DAYS ? 'Turno A' : 'Turno B'}
-                                  </span>
+                            
+                            <div className="flex items-center gap-3">
+                              {hasStock && (
+                                <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${isLowStock ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                                   <Package className="w-3 h-3" />
+                                   {med.stockQuantity}
+                                </div>
+                              )}
+                              <Pencil className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+                            </div>
+                          </div>
+                        );
+                       } else {
+                         // RENDER GROUPED CARD
+                         // Check if stock is shared (all have same sharedId) or we pick the first
+                         const sharedId = primary.sharedId;
+                         const allShareId = sharedId && group.every(m => m.sharedId === sharedId);
+                         const hasStock = primary.stockQuantity !== undefined && primary.stockQuantity !== null;
+                         // If they share stock, show stock on the group header. 
+                         // If they don't share stock but have same name, we can't easily sum them in a meaningful way for "Stock", 
+                         // so we might show it on individual lines or just hide it on header. 
+                         // For simplicity, if they have sharedId, show on Header.
+                         
+                         const isLowStock = hasStock && (primary.stockQuantity || 0) <= (primary.stockThreshold || 5);
+
+                         return (
+                           <div key={`group-${key}`} className="bg-white dark:bg-gray-800 transition-colors">
+                              {/* Group Header */}
+                              <div className="p-4 pb-2 flex items-center justify-between border-b border-dashed border-gray-100 dark:border-gray-700/50">
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-300`}>
+                                    {getIcon(primary.icon)}
+                                  </div>
+                                  <div>
+                                    <h3 className="font-bold text-gray-800 dark:text-gray-100 text-base">{primary.name}</h3>
+                                    <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium uppercase tracking-wide">
+                                      <Layers className="w-3 h-3" />
+                                      {group.length} Assunzioni
+                                    </div>
+                                  </div>
+                                </div>
+                                {allShareId && hasStock && (
+                                   <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${isLowStock ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
+                                      <Package className="w-3 h-3" />
+                                      {primary.stockQuantity}
+                                   </div>
                                 )}
                               </div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            {hasStock && (
-                              <div className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${isLowStock ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>
-                                 <Package className="w-3 h-3" />
-                                 {med.stockQuantity}
+
+                              {/* Group Children */}
+                              <div className="bg-gray-50/50 dark:bg-black/10">
+                                {group.map((med, idx) => (
+                                  <div 
+                                    key={med.id}
+                                    onClick={() => onEdit(med)}
+                                    className={`
+                                      flex items-center justify-between px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer transition-colors group
+                                      ${idx !== group.length - 1 ? 'border-b border-gray-100 dark:border-gray-700/50' : ''}
+                                    `}
+                                  >
+                                     <div className="flex flex-col pl-11 relative">
+                                        {/* Connector Line visual trick */}
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-px bg-gray-200 dark:bg-gray-600"></div>
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-500"></div>
+
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">{med.timing}</span>
+                                          {med.frequency !== Frequency.DAILY && (
+                                            <span className="text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded border border-blue-100 dark:border-blue-900/50">
+                                              {med.frequency === Frequency.ALTERNATE_DAYS ? 'A' : 'B'}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{med.dosage}</span>
+                                     </div>
+
+                                     <div className="flex items-center gap-3">
+                                        {/* If not shared stock, show individual stock here */}
+                                        {!allShareId && med.stockQuantity !== undefined && (
+                                          <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                                             <Package className="w-3 h-3" /> {med.stockQuantity}
+                                          </div>
+                                        )}
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                           <Pencil className="w-3.5 h-3.5 text-gray-400" />
+                                        </div>
+                                     </div>
+                                  </div>
+                                ))}
                               </div>
-                            )}
-                            <Pencil className="w-4 h-4 text-gray-300 dark:text-gray-600" />
-                          </div>
-                        </div>
-                      );
+                           </div>
+                         );
+                       }
                     })}
                   </div>
                 ) : (

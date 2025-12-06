@@ -29,7 +29,9 @@ Un'applicazione PWA (Progressive Web App) professionale progettata per la gestio
     *   Feedback visivi animati (pop & flash) al completamento.
     *   Design chiaro con "Accent Bars" colorate per i compiti da svolgere.
     *   Ordinamento alfabetico o cronologico.
-*   **Gestione Inventario**: Aggiunta, modifica ed eliminazione farmaci con icone personalizzate (Pillole, Gocce, Bustine).
+*   **Gestione Inventario**: 
+    *   Aggiunta, modifica ed eliminazione farmaci con icone personalizzate (Pillole, Gocce, Bustine).
+    *   **Raggruppamento Intelligente 📂**: I farmaci con lo stesso nome (es. presi mattina e sera) vengono raggruppati visivamente nelle Impostazioni per mantenere la lista ordinata e compatta.
 *   **Funzionalità PWA**:
     *   Installabile su Home Screen (iOS/Android).
     *   Funziona come app nativa (niente barre del browser).

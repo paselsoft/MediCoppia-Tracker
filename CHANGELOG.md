@@ -4,6 +4,13 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0] - 2025-12-05
+### Migliorato
+- **Organizzazione Impostazioni 📂**:
+  - Implementato il raggruppamento visivo per i medicinali con lo stesso nome.
+  - Se un farmaco viene assunto più volte al giorno (es. Mattina e Sera), ora appare come una singola voce espandibile.
+  - Riduce drasticamente la lunghezza della lista e migliora la leggibilità generale della sezione Setup.
+
 ## [1.17.0] - 2025-12-05
 ### Aggiunto
 - **Scorta Condivisa 🤝**:
