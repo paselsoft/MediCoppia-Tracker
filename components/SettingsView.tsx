@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Medication, UserID, InventoryItem, Frequency } from '../types';
 import { USERS } from '../constants';
 import { Settings, Plus, Pencil, Pill, Droplets, Clock, Trash2, Mail, Repeat, ArrowDownAZ, List, Package, AlertTriangle, Copy, Check, ShoppingCart, Archive, PlayCircle, Layers } from 'lucide-react';
@@ -77,12 +77,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
-  const lowStockCount = medications.filter(med => 
-    !med.isArchived &&
-    med.stockQuantity !== undefined && 
-    med.stockThreshold !== undefined && 
-    med.stockQuantity <= med.stockThreshold
-  ).length;
+  // Calcolo badge intelligente: conta i prodotti unici sotto soglia, non le singole assunzioni
+  const lowStockCount = useMemo(() => {
+    const lowStockMeds = medications.filter(med => 
+      !med.isArchived &&
+      med.stockQuantity !== undefined && 
+      med.stockThreshold !== undefined && 
+      med.stockQuantity <= med.stockThreshold
+    );
+
+    const uniqueKeys = new Set<string>();
+    
+    lowStockMeds.forEach(med => {
+      if (med.productId) {
+        uniqueKeys.add(`prod_${med.productId}`);
+      } else if (med.sharedId) {
+        uniqueKeys.add(`shared_${med.sharedId}`);
+      } else {
+        uniqueKeys.add(med.id);
+      }
+    });
+
+    return uniqueKeys.size;
+  }, [medications]);
 
   return (
     <div className="pb-24 pt-6">
@@ -108,7 +125,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           >
             <ShoppingCart className="w-5 h-5" />
             {lowStockCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800 animate-in zoom-in">
                 {lowStockCount}
               </span>
             )}
