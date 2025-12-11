@@ -11,7 +11,7 @@ import {
   isAfter, 
   isSameMonth
 } from 'date-fns';
-import it from 'date-fns/locale/it';
+import { it } from 'date-fns/locale';
 import { Check, X, CalendarDays, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Medication, UserProfile, Frequency } from '../types';
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { format, differenceInDays } from 'date-fns';
-import it from 'date-fns/locale/it';
+import { it } from 'date-fns/locale';
 import { MessageCircle, CalendarCheck, History, Loader2, Settings, Trophy, PartyPopper } from 'lucide-react';
 import { Header } from './components/Header';
 import { MedicationCard } from './components/MedicationCard';

@@ -4,6 +4,12 @@ Tutte le modifiche notevoli a questo progetto saranno documentate in questo file
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.22.1] - 2025-12-07
+### Migliorato
+- **Lista Spesa Intelligente 🛒**:
+  - **Raggruppamento prodotti**: Se più persone usano lo stesso medicinale (es. Uncaria per Paolo e Barbara), ora appare come una singola voce nella lista della spesa con entrambi gli avatar, evitando duplicati.
+  - **Filtro Sospesi**: I medicinali con terapia sospesa (Archiviati) non compaiono più nella lista della spesa, anche se sotto soglia.
+
 ## [1.22.0] - 2025-12-07
 ### Architettura
 - **Farmacia Virtuale (Magazzino) 🏥**: 

@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
 import { X, ShoppingCart, Share, Copy, MessageCircle } from 'lucide-react';
 import { Medication, UserID } from '../types';
 import { USERS } from '../constants';
@@ -16,17 +17,58 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Filter low stock medications
-  const lowStockItems = medications.filter(med => 
-    med.stockQuantity !== undefined && 
-    med.stockThreshold !== undefined && 
-    med.stockQuantity <= med.stockThreshold
-  );
+  // Raggruppa i medicinali con scorte basse evitando duplicati per prodotti condivisi
+  const uniqueItems = useMemo(() => {
+    // 1. Filtra i medicinali sotto soglia e non archiviati
+    const lowStock = medications.filter(med => 
+      !med.isArchived &&
+      med.stockQuantity !== undefined && 
+      med.stockThreshold !== undefined && 
+      med.stockQuantity <= med.stockThreshold
+    );
+
+    const grouped: Array<{
+      key: string;
+      name: string;
+      stockQuantity: number;
+      users: UserID[];
+    }> = [];
+
+    lowStock.forEach(med => {
+      // Determina la chiave di raggruppamento (Prodotto fisico o ID condiviso)
+      let key = med.id; // Default: medicinale singolo
+      if (med.productId) {
+        key = `prod_${med.productId}`;
+      } else if (med.sharedId) {
+        key = `shared_${med.sharedId}`;
+      }
+      
+      // Controlla se abbiamo già inserito questo prodotto
+      const existing = grouped.find(g => g.key === key);
+      
+      if (existing) {
+        // Se esiste già, aggiungi l'utente alla lista se non presente (es. Paolo e Barbara)
+        if (!existing.users.includes(med.userId)) {
+          existing.users.push(med.userId);
+        }
+      } else {
+        // Crea nuova voce
+        grouped.push({
+          key,
+          name: med.name,
+          stockQuantity: med.stockQuantity!,
+          users: [med.userId]
+        });
+      }
+    });
+
+    return grouped;
+  }, [medications]);
 
   const generateWhatsAppMessage = () => {
-    if (lowStockItems.length === 0) return;
+    if (uniqueItems.length === 0) return;
 
-    const itemsList = lowStockItems
+    const itemsList = uniqueItems
       .map(m => `- ${m.name} (ne restano ${m.stockQuantity})`)
       .join('\n');
       
@@ -36,7 +78,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
   };
 
   const copyToClipboard = () => {
-    const itemsList = lowStockItems.map(m => `- ${m.name}`).join('\n');
+    const itemsList = uniqueItems.map(m => `- ${m.name}`).join('\n');
     const text = `Lista Farmacia:\n${itemsList}`;
     navigator.clipboard.writeText(text);
     alert('Lista copiata negli appunti!');
@@ -59,7 +101,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
 
         {/* Content */}
         <div className="overflow-y-auto p-6 space-y-4 no-scrollbar flex-1">
-          {lowStockItems.length === 0 ? (
+          {uniqueItems.length === 0 ? (
             <div className="text-center py-10 opacity-60">
               <ShoppingCart className="w-16 h-16 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
               <p className="text-gray-500 dark:text-gray-400 font-medium">Tutto a posto!</p>
@@ -70,16 +112,26 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                 I seguenti medicinali sono sotto la soglia minima:
               </p>
-              {lowStockItems.map(med => {
-                const user = USERS[med.userId];
+              {uniqueItems.map(item => {
                 return (
-                  <div key={med.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                  <div key={item.key} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-3">
-                       <img src={user.avatar} className="w-8 h-8 rounded-full bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500" alt={user.name} />
+                       {/* Stack Avatar Utenti */}
+                       <div className="flex -space-x-2">
+                         {item.users.map(uid => (
+                           <img 
+                             key={uid}
+                             src={USERS[uid].avatar} 
+                             className="w-8 h-8 rounded-full bg-white dark:bg-gray-600 border-2 border-white dark:border-gray-700 relative z-10" 
+                             alt={USERS[uid].name} 
+                           />
+                         ))}
+                       </div>
+                       
                        <div>
-                         <h3 className="font-bold text-gray-800 dark:text-gray-200 text-sm">{med.name}</h3>
+                         <h3 className="font-bold text-gray-800 dark:text-gray-200 text-sm">{item.name}</h3>
                          <p className="text-xs text-red-500 dark:text-red-400 font-semibold">
-                           Ne restano: {med.stockQuantity}
+                           Ne restano: {item.stockQuantity}
                          </p>
                        </div>
                     </div>
@@ -91,7 +143,7 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        {lowStockItems.length > 0 && (
+        {uniqueItems.length > 0 && (
           <div className="p-5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 rounded-b-3xl grid grid-cols-2 gap-3">
              <button
                 onClick={copyToClipboard}
