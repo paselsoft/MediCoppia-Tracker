@@ -11,7 +11,7 @@ import {
   isAfter, 
   isSameMonth
 } from 'date-fns';
-import { it } from 'date-fns/locale';
+import it from 'date-fns/locale/it';
 import { Check, X, CalendarDays, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Medication, UserProfile, Frequency } from '../types';
 
@@ -48,7 +48,22 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 
   const getDayStats = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    const scheduledMeds = medications.filter(m => isMedicationScheduled(m, date));
+    
+    // Filter logic:
+    // 1. Must be scheduled based on frequency
+    // 2. If ARCHIVED, exclude it UNLESS there is a log proving it was taken that day.
+    const scheduledMeds = medications.filter(med => {
+      const isScheduled = isMedicationScheduled(med, date);
+      if (!isScheduled) return false;
+
+      // Fix for suspended therapy showing as missed:
+      if (med.isArchived) {
+        const wasTaken = logs[`${dateStr}-${med.id}`];
+        if (!wasTaken) return false;
+      }
+      
+      return true;
+    });
     
     if (scheduledMeds.length === 0) return { taken: 0, total: 0, percentage: 0, isEmpty: true };
 
@@ -188,6 +203,9 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
           const isTaken = logs[`${selectedDateStr}-${med.id}`];
           
           if (!isScheduled) return null;
+
+          // Fix for list rendering: Hide archived meds unless they were taken
+          if (med.isArchived && !isTaken) return null;
 
           // Determine Style based on state
           let containerClass = "bg-white dark:bg-gray-800 border-red-50 dark:border-red-900/50"; // Default skipped (past)
