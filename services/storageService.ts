@@ -1,7 +1,10 @@
 
-import { getSupabase } from './supabaseClient';
-import { Medication, LogEntry, InventoryItem } from '../types';
+import { getSupabase as getClient } from './supabaseClient';
+import { Medication, LogEntry, InventoryItem, InventoryLog } from '../types';
 import { INITIAL_MEDICATIONS } from '../constants';
+
+// Re-export needed for components that might need raw access (e.g. deletion logic)
+export const getSupabase = getClient;
 
 // --- Helpers ---
 
@@ -10,7 +13,9 @@ const mapDbToInventory = (row: any): InventoryItem => ({
   id: row.id,
   name: row.name,
   quantity: row.quantity,
-  threshold: row.threshold
+  threshold: row.threshold,
+  packSize: row.pack_size || 30, // Default fallback
+  unit: row.unit || 'pz'
 });
 
 // Transform database row to Medication object
@@ -52,7 +57,7 @@ const isNetworkError = (e: any) => {
 // --- API ---
 
 export const initializeDefaultDataIfNeeded = async () => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return;
 
   try {
@@ -94,7 +99,7 @@ export const initializeDefaultDataIfNeeded = async () => {
 // --- Inventory API ---
 
 export const fetchInventory = async (): Promise<InventoryItem[]> => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return [];
 
   try {
@@ -112,7 +117,7 @@ export const fetchInventory = async (): Promise<InventoryItem[]> => {
 };
 
 export const saveInventoryItem = async (item: InventoryItem): Promise<string | null> => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return null;
 
   try {
@@ -120,7 +125,9 @@ export const saveInventoryItem = async (item: InventoryItem): Promise<string | n
       id: item.id,
       name: item.name,
       quantity: item.quantity,
-      threshold: item.threshold
+      threshold: item.threshold,
+      pack_size: item.packSize,
+      unit: item.unit
     }).select().single();
 
     if (error) throw error;
@@ -131,10 +138,62 @@ export const saveInventoryItem = async (item: InventoryItem): Promise<string | n
   }
 };
 
+export const fetchInventoryLogs = async (limit = 20): Promise<InventoryLog[]> => {
+  const supabase = getClient();
+  if (!supabase) return [];
+
+  try {
+    // We join with inventory to get the current name, but allow for deleted items too if we stored name in log
+    const { data, error } = await supabase
+      .from('inventory_logs')
+      .select(`
+        id,
+        inventory_id,
+        amount_added,
+        packs_added,
+        created_at,
+        inventory ( name )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      if (error.message.includes('does not exist')) return [];
+      throw error;
+    }
+
+    return data.map((row: any) => ({
+      id: row.id,
+      inventoryId: row.inventory_id,
+      productName: row.inventory?.name || 'Prodotto sconosciuto',
+      amountAdded: row.amount_added,
+      packsAdded: row.packs_added,
+      date: row.created_at
+    }));
+  } catch (e) {
+    return [];
+  }
+};
+
+export const logRestock = async (itemId: string, packsAdded: number, totalAdded: number) => {
+  const supabase = getClient();
+  if (!supabase) return;
+
+  try {
+    await supabase.from('inventory_logs').insert({
+      inventory_id: itemId,
+      amount_added: totalAdded,
+      packs_added: packsAdded
+    });
+  } catch (e) {
+    console.error('Error logging restock:', e);
+  }
+};
+
 // --- Medication API ---
 
 export const fetchMedications = async (): Promise<Medication[]> => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return INITIAL_MEDICATIONS;
 
   try {
@@ -158,7 +217,7 @@ export const fetchMedications = async (): Promise<Medication[]> => {
 };
 
 export const saveMedication = async (med: Medication) => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return;
 
   // Prepare base object (always safe)
@@ -216,7 +275,7 @@ export const saveMedication = async (med: Medication) => {
 };
 
 export const deleteMedication = async (medId: string) => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return;
 
   try {
@@ -229,7 +288,7 @@ export const deleteMedication = async (medId: string) => {
 };
 
 export const fetchLogs = async (): Promise<Record<string, boolean>> => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return {};
 
   try {
@@ -245,7 +304,7 @@ export const fetchLogs = async (): Promise<Record<string, boolean>> => {
 };
 
 export const toggleLog = async (date: string, medId: string, taken: boolean) => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return;
 
   try {
@@ -264,7 +323,7 @@ export const toggleLog = async (date: string, medId: string, taken: boolean) => 
 };
 
 export const updateStock = async (medId: string, change: number) => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return;
 
   try {
@@ -307,7 +366,7 @@ export const updateStock = async (medId: string, change: number) => {
 
 // Check if the database has the new columns
 export const checkStockColumnsExist = async (): Promise<boolean> => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return false;
   
   try {
@@ -318,6 +377,14 @@ export const checkStockColumnsExist = async (): Promise<boolean> => {
       .limit(1);
 
     if (error) return false;
+
+    // Also check Inventory columns
+    const { error: invError } = await supabase
+      .from('inventory')
+      .select('pack_size, unit')
+      .limit(1);
+    
+    if (invError) return false;
     
     return true;
   } catch (e) {
@@ -327,7 +394,7 @@ export const checkStockColumnsExist = async (): Promise<boolean> => {
 
 // Realtime Subscription
 export const subscribeToChanges = (onUpdate: () => void) => {
-  const supabase = getSupabase();
+  const supabase = getClient();
   if (!supabase) return null;
 
   try {

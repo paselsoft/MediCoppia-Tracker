@@ -15,6 +15,17 @@ export interface InventoryItem {
   name: string;
   quantity: number;
   threshold: number;
+  packSize?: number; // Dimensione confezione standard (es. 50 cps, 50 ml)
+  unit?: string; // Es. 'cps', 'ml', 'bustine'
+}
+
+export interface InventoryLog {
+  id: number;
+  inventoryId: string;
+  productName: string;
+  amountAdded: number; // Quantità totale aggiunta
+  packsAdded: number; // Numero di confezioni aggiunte
+  date: string; // ISO Timestamp
 }
 
 export interface Medication {

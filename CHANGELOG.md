@@ -1,8 +1,20 @@
+
 # Changelog
 
 Tutte le modifiche notevoli a questo progetto saranno documentate in questo file.
 
 Il formato è basato su [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), e questo progetto aderisce al [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.22.3] - 2025-12-11
+### Aggiunto
+- **Correzione Manuale Inventario ✏️**: 
+  - Aggiunta icona "Matita" nella lista Dispensa.
+  - Permette di modificare manualmente la Quantità Attuale (utile per correggere errori di conteggio o fare l'inventario fisico).
+  - Permette di modificare Nome, Confezione Standard, Soglia e Unità di misura.
+- **Supporto Unità di Misura 📏**: 
+  - Il sistema ora gestisce esplicitamente le unità (es. 'ml', 'cps', 'bustine').
+  - Visualizzazione dell'unità accanto alla quantità nella lista Dispensa.
+- **Documentazione Dosaggi**: Creato file `DOSAGES.md` come riferimento interno per la conversione gocce/ml e formati confezioni.
 
 ## [1.22.2] - 2025-12-11
 ### Corretto
